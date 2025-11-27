@@ -1,6 +1,6 @@
 package uk.co.asepstrath.bank;
 
-import io.jooby.JoobyTest;
+import io.jooby.test.JoobyTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

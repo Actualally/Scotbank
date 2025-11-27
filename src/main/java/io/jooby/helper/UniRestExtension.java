@@ -2,7 +2,7 @@ package io.jooby.helper;
 
 import io.jooby.Extension;
 import io.jooby.Jooby;
-import kong.unirest.Unirest;
+import kong.unirest.core.Unirest;
 
 import javax.annotation.Nonnull;
 

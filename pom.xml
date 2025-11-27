@@ -5,20 +5,20 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>asep-bank</artifactId>
+    <artifactId>scotbank</artifactId>
     <groupId>uk.co.asepstrath</groupId>
     <version>1.0.0</version>
 
-    <name>asep-bank</name>
+    <name>scotbank</name>
 
     <properties>
         <!-- Startup class -->
         <application.class>uk.co.asepstrath.bank.App</application.class>
 
-        <jooby.version>2.3.1</jooby.version>
+        <jooby.version>4.0.12</jooby.version>
 
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -28,46 +28,44 @@
             <groupId>io.jooby</groupId>
             <artifactId>jooby-netty</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+            <version>1.5.21</version>
         </dependency>
 
         <dependency>
             <groupId>com.konghq</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>3.1.02</version>
+            <artifactId>unirest-java-core</artifactId>
+            <version>4.6.0</version>
         </dependency>
 
         <dependency>
             <groupId>io.jooby</groupId>
             <artifactId>jooby-handlebars</artifactId>
-            <version>2.3.0</version>
         </dependency>
 
         <dependency>
             <groupId>io.jooby</groupId>
             <artifactId>jooby-hikari</artifactId>
-            <version>2.3.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.200</version>
+            <version>2.4.240</version>
         </dependency>
 
         <!-- Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -79,7 +77,8 @@
 
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
+            <artifactId>okhttp-jvm</artifactId>
+            <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -89,20 +88,30 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.14.1</version>
                 <configuration>
                     <annotationProcessorPaths>
+                        <!-- if using lombok, it must be placed before the jooby-apt -->
+                        <!-- if using avaje-inject, it must be placed after lombok, but before the jooby-apt -->
                         <path>
                             <groupId>io.jooby</groupId>
                             <artifactId>jooby-apt</artifactId>
                             <version>${jooby.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>
+                        <compilerArg>
+                            -Ajooby.debug=false
+                        </compilerArg>
+                        <compilerArg>
+                            -Ajooby.services=true
+                        </compilerArg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.5.4</version>
             </plugin>
             <!-- jooby:run -->
             <plugin>
@@ -113,7 +122,7 @@
             <!-- Build uber jar -->
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <id>uber-jar</id>
@@ -161,7 +170,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.5</version>
+                        <version>0.8.14</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>

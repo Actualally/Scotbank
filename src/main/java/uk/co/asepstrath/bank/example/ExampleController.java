@@ -2,9 +2,10 @@ package uk.co.asepstrath.bank.example;
 
 import io.jooby.ModelAndView;
 import io.jooby.StatusCode;
-import io.jooby.StatusCodeException;
-import io.jooby.annotations.*;
-import kong.unirest.Unirest;
+import io.jooby.annotation.*;
+import io.jooby.exception.StatusCodeException;
+import kong.unirest.core.ContentType;
+import kong.unirest.core.Unirest;
 import org.slf4j.Logger;
 
 import javax.sql.DataSource;
@@ -46,12 +47,12 @@ public class ExampleController {
     }
 
     /*
-    This @Get annotation takes an optional path parameter which denotes the function should be invoked on GET <host>/example/hello
-    Note that this function makes it's own request to another API (http://faker.hook.io/) and returns the response
+    This @Get annotation takes an optional path parameter which denotes the function should be invoked on GET <host>/example/joke
+    Note that this function makes it's own request to another API (https://icanhazdadjoke.com/) and returns the response
      */
-    @GET("/hello")
-    public String sayHi() {
-        return "Hello " + Unirest.get("http://faker.hook.io/").asString().getBody();
+    @GET("/joke")
+    public String joke() {
+        return Unirest.get("https://icanhazdadjoke.com/").accept("text/plain").asString().getBody();
     }
 
     /*
@@ -65,7 +66,7 @@ public class ExampleController {
             // Create Statement (batch of SQL Commands)
             Statement statement = connection.createStatement();
             // Perform SQL Query
-            ResultSet set = statement.executeQuery("SELECT * FROM Example Where Key = '"+welcomeMessageKey+"'");
+            ResultSet set = statement.executeQuery("SELECT * FROM `Example` Where `Key` = '"+welcomeMessageKey+"'");
             // Read First Result
             set.next();
             // Extract value from Result
@@ -94,7 +95,7 @@ public class ExampleController {
     https://handlebarsjs.com/guide/
      */
     @GET("/dice")
-    public ModelAndView dice(@QueryParam String name) {
+    public ModelAndView<Map<String,Object>> dice(@QueryParam String name) {
 
         // If no name has been sent within the query URL
         if (name == null) {
@@ -108,7 +109,7 @@ public class ExampleController {
         model.put("random", new Random().nextInt(6));
         model.put("name", name);
 
-        return new ModelAndView("dice.hbs", model);
+        return new ModelAndView<>("dice.hbs", model);
 
     }
 

@@ -1,11 +1,11 @@
 package uk.co.asepstrath.bank.example;
 
-import uk.co.asepstrath.bank.App;
-import io.jooby.JoobyTest;
-import io.jooby.StatusCode;
+import io.jooby.test.JoobyTest;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import uk.co.asepstrath.bank.App;
+import io.jooby.StatusCode;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
