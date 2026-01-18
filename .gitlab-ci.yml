@@ -25,7 +25,7 @@ sonarqube-scan:
   - apt-get update
   - apt-get -y install jq
   script:
-  - mvn verify sonar:sonar -X -e $SONAR_CLI_OPTS
+  - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -X -e $SONAR_CLI_OPTS
   - export url=$(cat ../target/.sonar/report-task.txt | grep ceTaskUrl | cut -c11- ) #URL where report gets stored
   - sleep 15s #Wait time for the report
   - curl -k -u "$SONAR_AUTH_TOKEN":"" $url -o analysis.txt
