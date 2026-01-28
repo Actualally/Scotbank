@@ -1,0 +1,45 @@
+Investment - management
+
+
+As an investor
+I want timestamps on all purchases and sales of stocks and shares
+So that I can keep track of profits.
+
+As an investor
+I want to see Stock ticker symbols 
+So that I know im buying or selling the correct stock
+
+As an investor
+I want to view the number of shares I am purchasing or selling
+so that I know im purchasing or selling the correct volume
+
+As an investor
+I want to view the accurate realtime cost of shares
+So that I can buy or sell at the correct time.
+
+As an investor 
+I want to view the total cost of an order
+So that I can verify I have enough funds.
+
+As an investor
+I want to see my running position after my transaction
+So that I can see my profit/loss on that position.
+
+As an investor 
+I want to view a system with the current holdings for individual stock ticker
+So that I am kept up to date on open positions
+
+As an investor
+I want to be able to view total shares owned
+So that I am aware how many shares are owned by ticker
+
+As an investor 
+I want to be able to view the average price for each stock 
+So that I can know that I can get a good deal
+
+As an investor
+I want to view the amount I've invested in each ticker
+So that I know if I have made a profit/loss
+
+
+
