@@ -10,3 +10,6 @@ Welcome to your-bank!!
 
     ./mvnw.cmd clean package
 
+## Contributors
+
+James Edwards
