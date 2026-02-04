@@ -11,5 +11,6 @@ Welcome to your-bank!!
     ./mvnw.cmd clean package
 
 ## Contributors
+Alexander Marshall
 
 James Edwards
