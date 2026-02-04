@@ -12,3 +12,5 @@ Welcome to your-bank!!
 
 ## Contributors
 Alexander Marshall
+
+James Edwards
