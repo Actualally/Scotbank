@@ -82,6 +82,23 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.scotbank</groupId>
+            <artifactId>qa-tests</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/qa-tests-1.0-SNAPSHOT-jar-with-dependencies.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.scotbank</groupId>
+            <artifactId>qa-tests</artifactId>
+            <classifier>tests</classifier>
+            <version>1.0</version>
+            <scope>system</scope>
+            <type>test-jar</type>
+            <systemPath>${basedir}/lib/qa-tests-1.0-SNAPSHOT-tests.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -110,8 +127,13 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.4</version>
+                <configuration>
+                    <dependenciesToScan>
+                        <dependency>org.scotbank:qa-tests</dependency>
+                    </dependenciesToScan>
+                </configuration>
             </plugin>
             <!-- jooby:run -->
             <plugin>
