@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Welcome, {{name}}</h1>
+        <p class="account-id">Account: {{accountId}}</p>
+        <div class="balance-display">£{{balance}}</div>
+
+        {{#if success}}
+            <div class="msg-success">{{success}}</div>
+        {{/if}}
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        <div class="actions">
+            <a href="/account/deposit" class="btn btn-deposit">Deposit</a>
+            <a href="/account/withdraw" class="btn btn-withdraw">Withdraw</a>
+        </div>
+    </div>
+</body>
+</html>

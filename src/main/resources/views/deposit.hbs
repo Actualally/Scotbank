@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Deposit Money</h1>
+        <p class="balance">Current Balance: <strong>£{{balance}}</strong></p>
+
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        <form action="/account/deposit/process" method="post" id="depositForm">
+            <label for="depositamount">Amount (£)</label>
+            <input type="number" id="depositamount" name="depositamount"
+                   step="0.01" min="0.01" placeholder="0.00" required>
+            <button type="submit" class="btn btn-primary" id="depositBtn">Deposit</button>
+        </form>
+        <a href="/account" class="btn-link">← Back to Account</a>
+    </div>
+    <script>
+        document.getElementById('depositForm').addEventListener('submit', function(e) {
+            var input = document.getElementById('depositamount');
+            var value = parseFloat(input.value);
+            if (isNaN(value) || value <= 0) { e.preventDefault(); alert('Please enter a positive amount'); return; }
+            if (value > 999999999.99) { e.preventDefault(); alert('Amount exceeds maximum limit'); return; }
+            document.getElementById('depositBtn').disabled = true;
+            document.getElementById('depositBtn').textContent = 'Processing...';
+        });
+    </script>
+</body>
+</html>
