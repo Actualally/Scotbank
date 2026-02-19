@@ -12,8 +12,7 @@ public class IntegrationTest {
     static OkHttpClient client = new OkHttpClient.Builder()
             .followRedirects(false).build();
 
-    @Test
-    public void depositPage_loads(int serverPort) throws IOException {
+    @Test void depositPage_loads(int serverPort) throws IOException {
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account/deposit").build();
         try (Response rsp = client.newCall(req).execute()) {
@@ -26,8 +25,7 @@ public class IntegrationTest {
         }
     }
 
-    @Test
-    public void accountPage_showsDemoInvestor(int serverPort) throws IOException {
+    @Test void accountPage_showsDemoInvestor(int serverPort) throws IOException {
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account").build();
         try (Response rsp = client.newCall(req).execute()) {
@@ -38,8 +36,7 @@ public class IntegrationTest {
         }
     }
 
-    @Test
-    public void deposit_validAmount_redirectsToAccount(int serverPort) throws IOException {
+    @Test void deposit_validAmount_redirectsToAccount(int serverPort) throws IOException {
         RequestBody form = new FormBody.Builder().add("depositamount", "50.00").build();
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account/deposit/process").post(form).build();
@@ -51,8 +48,7 @@ public class IntegrationTest {
         }
     }
 
-    @Test
-    public void deposit_negativeAmount_redirectsToDeposit(int serverPort) throws IOException {
+    @Test void deposit_negativeAmount_redirectsToDeposit(int serverPort) throws IOException {
         RequestBody form = new FormBody.Builder().add("depositamount", "-10").build();
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account/deposit/process").post(form).build();

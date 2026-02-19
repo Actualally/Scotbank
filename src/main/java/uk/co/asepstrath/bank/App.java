@@ -18,7 +18,7 @@ import java.sql.Statement;
 
 public class App extends Jooby {
 
-    {
+    public App(){
 
         // Install extensions and modules
         install(new UniRestExtension());
