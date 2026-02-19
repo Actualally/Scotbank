@@ -43,7 +43,7 @@ public class AccountController {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     model.put("name", rs.getString("Name"));
-                    model.put("balance", rs.getBigDecimal("COL_BALANCE").toPlainString());
+                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
                     model.put("accountId", DEMO_ACCOUNT_ID);
                 }
             }
@@ -65,7 +65,7 @@ public class AccountController {
             stmt.setString(1, DEMO_ACCOUNT_ID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    model.put("balance", rs.getBigDecimal("COL_BALANCE").toPlainString());
+                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
                 }
             }
         } catch (SQLException e) {
@@ -141,7 +141,7 @@ public class AccountController {
                 if (!rs.next()) {
                     throw new SQLException("Account not found: " + accountId);
                 }
-                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("COL_BALANCE"));
+                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal(DB_BALANCE));
             }
         }
     }
