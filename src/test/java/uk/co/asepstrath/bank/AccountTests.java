@@ -1,39 +1,56 @@
 package uk.co.asepstrath.bank;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AccountTests {
-    Account account = new Account();
 
-    @Test
-    public void createAccount(){
-        Account a = new Account();
-        Assertions.assertTrue(a != null);
+    @Test public void createAccount() {
+        Account a = new Account("id-1", "Test User", BigDecimal.valueOf(100));
+        assertNotNull(a);
+        assertEquals("id-1", a.getAccountId());
+        assertEquals("Test User", a.getName());
+        assertEquals(BigDecimal.valueOf(100), a.getBalance());
     }
 
-    @Test
-    public void initialBalanceIsZero(){
-        Assertions.assertEquals(0,account.getBalance());
+    @Test public void deposit_positiveAmount() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
+        a.deposit(BigDecimal.valueOf(50));
+        assertEquals(BigDecimal.valueOf(150), a.getBalance());
     }
 
-    @Test
-    public void depositPositiveAmount(){
-        account.deposit(10);
-        Assertions.assertEquals(10,account.getBalance());
+    @Test public void deposit_pennyPrecision() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(5.45));
+        a.deposit(BigDecimal.valueOf(17.56));
+        assertEquals(BigDecimal.valueOf(23.01), a.getBalance());
     }
 
-    @Test
-    public void depositZeroThrowsException(){
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            account.deposit(0);
-        });
+    @Test public void deposit_multipleTimes() {
+        Account a = new Account("id-1", "Test", BigDecimal.ZERO);
+        a.deposit(BigDecimal.valueOf(10));
+        a.deposit(BigDecimal.valueOf(20));
+        a.deposit(BigDecimal.valueOf(30));
+        assertEquals(BigDecimal.valueOf(60), a.getBalance());
     }
 
-    @Test
-    public void depositNegativeAmountThrowsException(){
-        Assertions.assertThrows(IllegalArgumentException.class, () -> account.deposit(-10));
+    @Test public void deposit_zero_throwsException() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
+        assertThrows(ArithmeticException.class, () -> a.deposit(BigDecimal.ZERO));
     }
 
+    @Test public void deposit_negative_throwsException() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
+        assertThrows(ArithmeticException.class, () -> a.deposit(BigDecimal.valueOf(-10)));
+    }
 
+    @Test public void deposit_null_throwsException() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
+        assertThrows(ArithmeticException.class, () -> a.deposit(null));
+    }
+
+    @Test public void deposit_exceedingMaxBalance_throwsException() {
+        Account a = new Account("id-1", "Test", BigDecimal.valueOf(999_999_990));
+        assertThrows(ArithmeticException.class, () -> a.deposit(BigDecimal.valueOf(100)));
+    }
 }
