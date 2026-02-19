@@ -40,8 +40,8 @@ public class App extends Jooby {
         mvc(new AccountController_(ds, log));
 
         // Lifecycle hooks
-        onStarted(() -> onStart()); // after the server starts
-        onStop(() -> onStop()); // before the server stops
+        onStarted(this::onStart); // after the server starts
+        onStop(this::onStop); // before the server stops
     }
 
     public static void main(final String[] args) {

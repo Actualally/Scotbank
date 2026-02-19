@@ -25,6 +25,7 @@ public class AccountController {
     private final DataSource dataSource;
     private final Logger logger;
     private static final String DEMO_ACCOUNT_ID = "investor-001";
+    private static final String DB_BALANCE = "Balance";
 
     public AccountController(DataSource ds, Logger log) {
         this.dataSource = ds;
@@ -42,7 +43,7 @@ public class AccountController {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     model.put("name", rs.getString("Name"));
-                    model.put("balance", rs.getBigDecimal("Balance").toPlainString());
+                    model.put("balance", rs.getBigDecimal("COL_BALANCE").toPlainString());
                     model.put("accountId", DEMO_ACCOUNT_ID);
                 }
             }
@@ -64,7 +65,7 @@ public class AccountController {
             stmt.setString(1, DEMO_ACCOUNT_ID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    model.put("balance", rs.getBigDecimal("Balance").toPlainString());
+                    model.put("balance", rs.getBigDecimal("COL_BALANCE").toPlainString());
                 }
             }
         } catch (SQLException e) {
@@ -140,7 +141,7 @@ public class AccountController {
                 if (!rs.next()) {
                     throw new SQLException("Account not found: " + accountId);
                 }
-                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("Balance"));
+                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("COL_BALANCE"));
             }
         }
     }

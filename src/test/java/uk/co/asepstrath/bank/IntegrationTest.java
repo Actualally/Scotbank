@@ -7,7 +7,7 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.*;
 
 @JoobyTest(App.class)
-public class IntegrationTest {
+class IntegrationTest {
 
     static OkHttpClient client = new OkHttpClient.Builder()
             .followRedirects(false).build();

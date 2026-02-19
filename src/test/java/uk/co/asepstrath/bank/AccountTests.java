@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AccountTests {
+class AccountTests {
 
     @Test void createAccount() {
         Account a = new Account("id-1", "Test User", BigDecimal.valueOf(100));
@@ -58,7 +58,8 @@ public class AccountTests {
 
     @Test void deposit_exceedingMaxBalance_throwsException() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(999_999_990));
-        assertThrows(ArithmeticException.class, () -> a.deposit(BigDecimal.valueOf(100)));
+        BigDecimal depositAmount = BigDecimal.valueOf(100);
+        assertThrows(ArithmeticException.class, () -> a.deposit(depositAmount));
     }
 
     @Test void withdraw_validAmount() {
@@ -87,7 +88,8 @@ public class AccountTests {
 
     @Test void withdraw_negative_throwsException() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
-        assertThrows(ArithmeticException.class, () -> a.withdraw(BigDecimal.valueOf(-5)));
+        BigDecimal withdrawAmount = BigDecimal.valueOf(-5);
+        assertThrows(ArithmeticException.class, () -> a.withdraw(withdrawAmount));
     }
 
     @Test void withdraw_null_throwsException() {
