@@ -4,7 +4,6 @@ import io.jooby.Cookie;
 import io.jooby.ServerOptions;
 import io.jooby.SessionStore;
 import io.jooby.netty.NettyServer;
-import uk.co.asepstrath.bank.example.ExampleController;
 import io.jooby.Jooby;
 import io.jooby.handlebars.HandlebarsModule;
 import io.jooby.helper.UniRestExtension;
