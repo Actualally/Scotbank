@@ -38,11 +38,12 @@ public class AccountController {
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
             stmt.setString(1, DEMO_ACCOUNT_ID);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                model.put("name", rs.getString("Name"));
-                model.put("balance", rs.getBigDecimal("Balance").toPlainString());
-                model.put("accountId", DEMO_ACCOUNT_ID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    model.put("name", rs.getString("Name"));
+                    model.put("balance", rs.getBigDecimal("Balance").toPlainString());
+                    model.put("accountId", DEMO_ACCOUNT_ID);
+                }
             }
         } catch (SQLException e) {
             logger.error("Error loading account", e);
@@ -59,9 +60,10 @@ public class AccountController {
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
             stmt.setString(1, DEMO_ACCOUNT_ID);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                model.put("balance", rs.getBigDecimal("Balance").toPlainString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    model.put("balance", rs.getBigDecimal("Balance").toPlainString());
+                }
             }
         } catch (SQLException e) {
             logger.error("Error loading balance for deposit form", e);
@@ -77,26 +79,10 @@ public class AccountController {
 
         try {
             BigDecimal amount = parseAndValidateAmount(amountStr);
-
-            try (Connection conn = dataSource.getConnection()) {
-                conn.setAutoCommit(false);
-                try {
-                    Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
-                    account.deposit(amount);
-                    updateBalance(conn, account);
-                    recordTransaction(conn, DEMO_ACCOUNT_ID, "DEPOSIT", amount);
-                    conn.commit();
-
-                    ctx.session().put(SESSION_SUCCESS_MESSAGE,
-                            "Successfully deposited £" + amount.toPlainString());
-                    logger.info("Deposit of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
-                } catch (Exception e) {
-                    conn.rollback();
-                    throw e;
-                } finally {
-                    conn.setAutoCommit(true);
-                }
-            }
+            performDeposit(amount);
+            ctx.session().put(SESSION_SUCCESS_MESSAGE,
+                    "Successfully deposited £" + amount.toPlainString());
+            logger.info("Deposit of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
             ctx.sendRedirect(ROUTE_ACCOUNT);
 
         } catch (ArithmeticException e) {
@@ -107,6 +93,24 @@ public class AccountController {
             logger.error("Database error during deposit", e);
             ctx.session().put(SESSION_ERROR_MESSAGE, "A system error occurred. Please try again.");
             ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_DEPOSIT);
+        }
+    }
+
+    private void performDeposit(BigDecimal amount) throws SQLException {
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
+                account.deposit(amount);
+                updateBalance(conn, account);
+                recordTransaction(conn, DEMO_ACCOUNT_ID, "DEPOSIT", amount);
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
     }
 
@@ -126,11 +130,12 @@ public class AccountController {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
             stmt.setString(1, accountId);
-            ResultSet rs = stmt.executeQuery();
-            if (!rs.next()) {
-                throw new ArithmeticException("Account not found");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("Account not found: " + accountId);
+                }
+                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("Balance"));
             }
-            return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("Balance"));
         }
     }
 
