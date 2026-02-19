@@ -10,7 +10,7 @@ import io.jooby.handlebars.HandlebarsModule;
 import io.jooby.helper.UniRestExtension;
 import io.jooby.hikari.HikariModule;
 import org.slf4j.Logger;
-import uk.co.asepstrath.bank.example.ExampleController_;
+import uk.co.asepstrath.bank.controllers.AccountController_;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -42,7 +42,7 @@ public class App extends Jooby {
         DataSource ds = require(DataSource.class);
         Logger log = getLog();
 
-        mvc(new ExampleController_(ds,log));
+        mvc(new AccountController_(ds,log));
 
         /*
         Finally we register our application lifecycle methods
@@ -63,16 +63,40 @@ public class App extends Jooby {
         Logger log = getLog();
         log.info("Starting Up...");
 
-        // Fetch DB Source
         DataSource ds = require(DataSource.class);
-        // Open Connection to DB
         try (Connection connection = ds.getConnection()) {
-            //
             Statement stmt = connection.createStatement();
-            stmt.executeUpdate("CREATE TABLE `Example` (`Key` varchar(255),`Value` varchar(255))");
-            stmt.executeUpdate("INSERT INTO Example " + "VALUES ('WelcomeMessage', 'Welcome to A Bank')");
+
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS Accounts (
+                AccountID VARCHAR(64) NOT NULL,
+                Name VARCHAR(128) NOT NULL,
+                Balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                PRIMARY KEY (AccountID)
+            )
+        """);
+
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS Transactions (
+                TransactionID VARCHAR(64) NOT NULL,
+                InvestorID VARCHAR(64) NOT NULL,
+                TransactionType VARCHAR(20) NOT NULL,
+                Ticker VARCHAR(10) NULL,
+                TotalCashAmount DECIMAL(12,2) NOT NULL,
+                TransactionDate DATE NOT NULL,
+                PRIMARY KEY (TransactionID),
+                FOREIGN KEY (InvestorID) REFERENCES Accounts(AccountID)
+            )
+        """);
+
+            stmt.executeUpdate("""
+            MERGE INTO Accounts (AccountID, Name, Balance)
+            VALUES ('investor-001', 'Demo Investor', 1000.00)
+        """);
+
+            log.info("Database tables created and seeded successfully");
         } catch (SQLException e) {
-            log.error("Database Creation Error",e);
+            log.error("Database Creation Error", e);
         }
     }
 
