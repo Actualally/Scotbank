@@ -19,28 +19,36 @@ import java.sql.Statement;
 public class App extends Jooby {
 
     {
+
+        // Install extensions and modules
         install(new UniRestExtension());
         install(new HandlebarsModule());
         install(new HikariModule("mem"));
 
+        // Set up in-memory session store with named cookie
         setSessionStore(SessionStore.memory(Cookie.session("scotbank")));
 
+        // Serve static assets
         assets("/assets/*", "/assets");
         assets("/service_worker.js","/service_worker.js");
 
+        // Obtain shared DataSource and logger
         DataSource ds = require(DataSource.class);
         Logger log = getLog();
 
+        // Register controller(s) for MVC routes
         mvc(new AccountController_(ds, log));
 
-        onStarted(() -> onStart());
-        onStop(() -> onStop());
+        // Lifecycle hooks
+        onStarted(() -> onStart()); // after the server starts
+        onStop(() -> onStop()); // before the server stops
     }
 
     public static void main(final String[] args) {
         runApp(args, new NettyServer(new ServerOptions()), App::new);
     }
 
+    // Initialize database tables and seed demo account
     public void onStart() {
         Logger log = getLog();
         log.info("Starting Up...");
@@ -49,6 +57,7 @@ public class App extends Jooby {
         try (Connection connection = ds.getConnection();
              Statement stmt = connection.createStatement()) {
 
+            //if the Accounts table does not exist already create one
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS Accounts (
                     AccountID VARCHAR(64) NOT NULL,
@@ -58,6 +67,7 @@ public class App extends Jooby {
                 )
             """);
 
+            //if the Transactions table does not exist also create one
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS Transactions (
                     TransactionID VARCHAR(64) NOT NULL,
@@ -71,6 +81,7 @@ public class App extends Jooby {
                 )
             """);
 
+            //this is an example account for testing purposes
             stmt.executeUpdate("""
                 MERGE INTO Accounts (AccountID, Name, Balance)
                 VALUES ('investor-001', 'Demo Investor', 1000.00)
@@ -82,6 +93,7 @@ public class App extends Jooby {
         }
     }
 
+    //Logs that the server is shutting down
     public void onStop() {
         Logger log = getLog();
         log.info("Shutting Down...");

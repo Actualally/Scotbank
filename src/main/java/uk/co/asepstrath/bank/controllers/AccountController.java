@@ -31,6 +31,7 @@ public class AccountController {
         this.logger = log;
     }
 
+    // Show main account page
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         Map<String, Object> model = new HashMap<>();
@@ -53,6 +54,7 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_ACCOUNT, model);
     }
 
+    // Show deposit form with current balance
     @GET(ROUTE_DEPOSIT)
     public ModelAndView<Map<String, Object>> showDepositForm(Context ctx) {
         Map<String, Object> model = new HashMap<>();
@@ -72,6 +74,7 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_DEPOSIT, model);
     }
 
+    // Handle deposit submission
     @POST(ROUTE_DEPOSIT + ROUTE_PROCESS)
     public void processDeposit(Context ctx) {
         String amountStr = ctx.form("depositamount").valueOrNull();
@@ -96,6 +99,7 @@ public class AccountController {
         }
     }
 
+    // Perform deposit transaction in database
     private void performDeposit(BigDecimal amount) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
@@ -114,6 +118,7 @@ public class AccountController {
         }
     }
 
+    // Validate and parse deposit amount
     private BigDecimal parseAndValidateAmount(String raw) throws ArithmeticException {
         if (raw == null || raw.trim().isEmpty()) {
             throw new ArithmeticException("Please enter a deposit amount");
@@ -126,6 +131,7 @@ public class AccountController {
         }
     }
 
+    // Load account from DB
     private Account loadAccount(Connection conn, String accountId) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
@@ -139,6 +145,7 @@ public class AccountController {
         }
     }
 
+    // Update account balance in DB
     private void updateBalance(Connection conn, Account account) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "UPDATE Accounts SET Balance = ? WHERE AccountID = ?")) {
@@ -148,6 +155,7 @@ public class AccountController {
         }
     }
 
+    // Record a transaction in DB
     private void recordTransaction(Connection conn, String investorId,
                                    String type, BigDecimal amount) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
@@ -164,6 +172,7 @@ public class AccountController {
         }
     }
 
+    // Move session flash messages into the model
     private void transferFlashMessages(Context ctx, Map<String, Object> model) {
         var session = ctx.sessionOrNull();
         if (session == null) return;
