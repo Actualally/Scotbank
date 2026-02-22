@@ -75,6 +75,53 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_DEPOSIT, model);
     }
 
+    // Show withdrawal form with current balance
+    @GET(ROUTE_WITHDRAW)
+    public ModelAndView<Map<String,Object>> showWithdrawalForm(Context ctx) {
+        Map<String,Object> model = new HashMap<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
+            stmt.setString(1, DEMO_ACCOUNT_ID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error loading balance for withdrawal form", e);
+        }
+        transferFlashMessages(ctx, model);
+        return new ModelAndView<>(TEMPLATE_WITHDRAW, model);
+    }
+
+    //TODO Handle withdrawal submission
+    @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
+    public void processWithdrawal(Context ctx){
+        String amountstr = ctx.form("withdrawamount").valueOrNull();
+        logger.info("Withdrawal requested - raw input: '{}'", amountstr);
+
+        try {
+            BigDecimal amount = parseAndValidateAmount(amountstr);
+            performWithdrawal(amount);
+            ctx.session().put(SESSION_SUCCESS_MESSAGE, 
+                "Successfully withdrawn £" + amount.toPlainString()
+            );
+
+            logger.info("Withdrawal of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
+            ctx.sendRedirect(ROUTE_ACCOUNT);
+
+        }catch (ArithmeticException e){
+            logger.info("Withdrawal failed: {}", e.getMessage());
+            ctx.session().put(SESSION_ERROR_MESSAGE, e.getMessage());
+            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
+        }catch (SQLException e) {
+            logger.error("Database error during withdrawal", e);
+            ctx.session().put(SESSION_ERROR_MESSAGE, "A system error occurred. Please try again.");
+            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
+        }
+    }
+
     // Handle deposit submission
     @POST(ROUTE_DEPOSIT + ROUTE_PROCESS)
     public void processDeposit(Context ctx) {
@@ -119,10 +166,28 @@ public class AccountController {
         }
     }
 
-    // Validate and parse deposit amount
+    private void performWithdrawal(BigDecimal amount) throws SQLException{
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
+                account.withdraw(amount);
+                updateBalance(conn, account);
+                recordTransaction(conn, DEMO_ACCOUNT_ID, "WITHDRAWAL", amount);
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
+    // Validate and parse transaction amount
     private BigDecimal parseAndValidateAmount(String raw) throws ArithmeticException {
         if (raw == null || raw.trim().isEmpty()) {
-            throw new ArithmeticException("Please enter a deposit amount");
+            throw new ArithmeticException("Please enter an amount");
         }
         try {
             BigDecimal amount = new BigDecimal(raw.trim());

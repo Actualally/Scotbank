@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Withdraw Money</h1>
+        <p class="balance">Current Balance: <strong>£{{balance}}</strong></p>
+
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        <form action="/account/withdraw/process" method="post" id="withdrawForm">
+            <label for="withdrawamount">Amount (£)</label>
+            <input type="number" id="withdrawamount" name="withdrawamount" step="0.01" min="0.01" placeholder="0.00" required>
+            <button type="submit" class="btn btn-primary" id="withdrawBtn">Withdraw</button>
+        </form>
+
+
+
+        <a href="/account" class="btn-link">← Back to Account</a>
+    </div>
+
+    <script>
+        document.getElementById('withdrawForm').addEventListenet('submit', function(e){
+            var input = document.getElementById('withdrawamount');
+            var value = parseFloat(input.value);
+            if(isNaN(value) || value <= 0){ e.preventDefault(); alert('Please enter a positive amount'; return;)}
+            const reponse = await fetch("")
+            if(value > {{balance}}){ e.preventDefault(); alert('Please enter an amount less than or equal to your balance'; return;)}
+            document.getElementById('withdrawBtn').disabled = true;
+            document.getElementById('withdrawBtn').textContent = 'Processing...';
+        });
+
+    </script>
+
+</body>
+</html>
