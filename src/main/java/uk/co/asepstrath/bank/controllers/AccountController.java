@@ -42,9 +42,9 @@ public class AccountController {
             stmt.setString(1, DEMO_ACCOUNT_ID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    model.put("name", rs.getString("Name"));
-                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
-                    model.put("accountId", DEMO_ACCOUNT_ID);
+                    model.put(DB_NAME, rs.getString("Name"));
+                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
+                    model.put(DB_ID, DEMO_ACCOUNT_ID);
                 }
             }
         } catch (SQLException e) {
