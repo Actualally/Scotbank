@@ -19,6 +19,8 @@ public final class Constants {
     public static final String SESSION_ERROR_MESSAGE = "error";
     public static final String SESSION_SUCCESS_MESSAGE = "success";
 
+    public static final String DB_BALANCE = "balance";
+
     public static final BigDecimal MAX_BALANCE = BigDecimal.valueOf(999_999_999.99);
 
     private Constants() {}

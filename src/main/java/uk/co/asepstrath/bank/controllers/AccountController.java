@@ -65,7 +65,7 @@ public class AccountController {
             stmt.setString(1, DEMO_ACCOUNT_ID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
+                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
                 }
             }
         } catch (SQLException e) {
@@ -85,7 +85,7 @@ public class AccountController {
             stmt.setString(1, DEMO_ACCOUNT_ID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
+                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
                 }
             }
         } catch (SQLException e) {
@@ -95,7 +95,6 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_WITHDRAW, model);
     }
 
-    //TODO Handle withdrawal submission
     @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
     public void processWithdrawal(Context ctx){
         String amountstr = ctx.form("withdrawamount").valueOrNull();
