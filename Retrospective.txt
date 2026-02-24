@@ -1,0 +1,14 @@
+--Completed tasks
+-Deposit Function
+-Withdrawal Function
+
+
+--Currently working on
+-Ryan is working on the login system
+
+
+--What could we improve on?
+
+
+
+--what issues to look out for.
