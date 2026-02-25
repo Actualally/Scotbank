@@ -15,7 +15,7 @@
 -Ryan is working on the login system
 -Alexander is working on the transaction history
 -James is working on improving code coverage (integration tests)
-
+-Nour is working on making the issue board work with our previous issues
 
 --What Went Well technique
 
