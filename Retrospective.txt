@@ -1,3 +1,5 @@
+--General Overview
+
 --Completed tasks
 -transaction decline
 -balance tracking
@@ -15,10 +17,17 @@
 -James is working on improving code coverage (integration tests)
 
 
---What could we improve on?
--We could improve upon our communication outside of lecture and lab time.
+--What Went Well technique
 
+--What went well
+-Completed a lot of foundational tasks
+-Managed to eventually get to grips with new technology
 
---What issues to look out for.
--The most common issue we will face is reiterating over our code to ensure it passes
-SonarQube scan tests.
+--What didn't go so well?
+-Bad communication outside of lecture and lab time.
+-Tough learning curve to understand new technology
+-Faced common with SonarQube code quality failing, we will try to write code that passes more scans
+
+--How could we improve?
+-Get group communication figured out in lab
+-Take some time to properly prioritise/delegate tasks
