@@ -1,14 +1,24 @@
 --Completed tasks
--Deposit Function
--Withdrawal Function
+-transaction decline
+-balance tracking
+-withdrawl validation
+-deposit validation
+-updated balance withdrawl
+-withdraw funds
+-deposit funds
+-updated balance deposit
 
 
 --Currently working on
 -Ryan is working on the login system
+-Alexander is working on the transaction history
+-James is working on improving code coverage (integration tests)
 
 
 --What could we improve on?
+-We could improve upon our communication outside of lecture and lab time.
 
 
-
---what issues to look out for.
+--What issues to look out for.
+-The most common issue we will face is reiterating over our code to ensure it passes
+SonarQube scan tests.
