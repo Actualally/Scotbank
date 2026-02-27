@@ -16,6 +16,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 import static uk.co.asepstrath.bank.Constants.*;
 
@@ -39,23 +41,31 @@ public class AccountController {
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         Map<String, Object> model = new HashMap<>();
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    model.put(DB_NAME, rs.getString("Name"));
-                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
-                    model.put(DB_ID, DEMO_ACCOUNT_ID);
+        try (Connection conn = dataSource.getConnection()) {
+
+            // Load account details
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
+                stmt.setString(1, DEMO_ACCOUNT_ID);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        model.put("name", rs.getString("Name"));
+                        model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
+                        model.put("accountId", DEMO_ACCOUNT_ID);
+                    }
                 }
             }
+
+            // Load transaction history
+            List<Map<String, String>> transactions = loadTransactions(conn, DEMO_ACCOUNT_ID);
+            model.put("transactions", transactions);
+
         } catch (SQLException e) {
             logger.error("Error loading account", e);
             model.put(SESSION_ERROR_MESSAGE, "Could not load account data");
         }
         transferFlashMessages(ctx, model);
-        return new ModelAndView<>("account.hbs", model);
+        return new ModelAndView<>(TEMPLATE_ACCOUNT, model);
     }
 
     // Show deposit form with current balance
@@ -238,6 +248,28 @@ public class AccountController {
             stmt.setDate(6, Date.valueOf(LocalDate.now()));
             stmt.executeUpdate();
         }
+    }
+
+    // Loading transaction history
+    private List<Map<String, String>> loadTransactions(Connection conn, String accountId)
+            throws SQLException {
+        List<Map<String, String>> transactions = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT TransactionType, TotalCashAmount, TransactionDate " +
+                        "FROM Transactions WHERE InvestorID = ? " +
+                        "ORDER BY TransactionDate DESC")) {
+            stmt.setString(1, accountId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, String> row = new HashMap<>();
+                    row.put("type", rs.getString("TransactionType"));
+                    row.put("amount", rs.getBigDecimal("TotalCashAmount").toPlainString());
+                    row.put("date", rs.getDate("TransactionDate").toString());
+                    transactions.add(row);
+                }
+            }
+        }
+        return transactions;
     }
 
     // Move session flash messages into the model
