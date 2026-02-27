@@ -49,9 +49,9 @@ public class AccountController {
                 stmt.setString(1, DEMO_ACCOUNT_ID);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        model.put("name", rs.getString("Name"));
-                        model.put("balance", rs.getBigDecimal(DB_BALANCE).toPlainString());
-                        model.put("accountId", DEMO_ACCOUNT_ID);
+                        model.put(DB_NAME, rs.getString("Name"));
+                        model.put(DB_BALANCE, String.format("%,.2f", rs.getBigDecimal(DB_BALANCE)));
+                        model.put(DB_ID, DEMO_ACCOUNT_ID);
                     }
                 }
             }
@@ -263,7 +263,7 @@ public class AccountController {
                 while (rs.next()) {
                     Map<String, String> row = new HashMap<>();
                     row.put("type", rs.getString("TransactionType"));
-                    row.put("amount", rs.getBigDecimal("TotalCashAmount").toPlainString());
+                    row.put("amount", String.format("%,.2f", rs.getBigDecimal("TotalCashAmount")));
                     row.put("date", rs.getDate("TransactionDate").toString());
                     transactions.add(row);
                 }
