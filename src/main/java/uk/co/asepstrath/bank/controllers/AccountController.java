@@ -7,59 +7,42 @@ import io.jooby.annotation.POST;
 import io.jooby.annotation.Path;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.Account;
+import uk.co.asepstrath.bank.services.AccountService;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static uk.co.asepstrath.bank.Constants.*;
 
 @Path(ROUTE_ACCOUNT)
 public class AccountController {
 
-    private final DataSource dataSource;
+    private final AccountService accountService;
     private final Logger logger;
     private static final String DEMO_ACCOUNT_ID = "investor-001";
     private static final String DB_NAME = "name";
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
-    private static final String DB_TRANSACTIONS = "transactions";
 
-
-    public AccountController(DataSource ds, Logger log) {
-        this.dataSource = ds;
+    public AccountController(AccountService accountService, Logger log) {
+        this.accountService = accountService;
         this.logger = log;
     }
 
-    // Show main account page
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         Map<String, Object> model = new HashMap<>();
-        try (Connection conn = dataSource.getConnection()) {
+        try {
+            Account account = accountService.getAccountDetails(DEMO_ACCOUNT_ID);
+            model.put(DB_NAME, account.getName());
+            model.put(DB_BALANCE, String.format("%,.2f", account.getBalance()));
+            model.put(DB_ID, DEMO_ACCOUNT_ID);
 
-            // Load account details
-            try (PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
-                stmt.setString(1, DEMO_ACCOUNT_ID);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        model.put(DB_NAME, rs.getString("Name"));
-                        model.put(DB_BALANCE, String.format("%,.2f", rs.getBigDecimal(DB_BALANCE)));
-                        model.put(DB_ID, DEMO_ACCOUNT_ID);
-                    }
-                }
-            }
-
-            // Load transaction history
-            List<Map<String, String>> transactions = loadTransactions(conn, DEMO_ACCOUNT_ID);
-            model.put(DB_TRANSACTIONS, transactions);
+            List<Map<String, String>> transactions = accountService.getTransactionHistory(DEMO_ACCOUNT_ID);
+            model.put("transactions", transactions);
 
         } catch (SQLException e) {
             logger.error("Error loading account", e);
@@ -69,18 +52,13 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_ACCOUNT, model);
     }
 
-    // Show deposit form with current balance
     @GET(ROUTE_DEPOSIT)
     public ModelAndView<Map<String, Object>> showDepositForm(Context ctx) {
         Map<String, Object> model = new HashMap<>();
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
-                }
+        try {
+            BigDecimal balance = accountService.getBalance(DEMO_ACCOUNT_ID);
+            if (balance != null) {
+                model.put(DB_BALANCE, balance.toPlainString());
             }
         } catch (SQLException e) {
             logger.error("Error loading balance for deposit form", e);
@@ -89,18 +67,13 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_DEPOSIT, model);
     }
 
-    // Show withdrawal form with current balance
     @GET(ROUTE_WITHDRAW)
-    public ModelAndView<Map<String,Object>> showWithdrawalForm(Context ctx) {
-        Map<String,Object> model = new HashMap<>();
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
-                }
+    public ModelAndView<Map<String, Object>> showWithdrawalForm(Context ctx) {
+        Map<String, Object> model = new HashMap<>();
+        try {
+            BigDecimal balance = accountService.getBalance(DEMO_ACCOUNT_ID);
+            if (balance != null) {
+                model.put(DB_BALANCE, balance.toPlainString());
             }
         } catch (SQLException e) {
             logger.error("Error loading balance for withdrawal form", e);
@@ -109,44 +82,16 @@ public class AccountController {
         return new ModelAndView<>(TEMPLATE_WITHDRAW, model);
     }
 
-    @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
-    public void processWithdrawal(Context ctx){
-        String amountstr = ctx.form("withdrawamount").valueOrNull();
-        logger.info("Withdrawal requested - raw input: '{}'", amountstr);
-
-        try {
-            BigDecimal amount = parseAndValidateAmount(amountstr);
-            performWithdrawal(amount);
-            ctx.session().put(SESSION_SUCCESS_MESSAGE, 
-                "Successfully withdrawn £" + amount.toPlainString()
-            );
-
-            logger.info("Withdrawal of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
-            ctx.sendRedirect(ROUTE_ACCOUNT);
-
-        }catch (ArithmeticException e){
-            logger.info("Withdrawal failed: {}", e.getMessage());
-            ctx.session().put(SESSION_ERROR_MESSAGE, e.getMessage());
-            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
-        }catch (SQLException e) {
-            logger.error("Database error during withdrawal", e);
-            ctx.session().put(SESSION_ERROR_MESSAGE, "A system error occurred. Please try again.");
-            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
-        }
-    }
-
-    // Handle deposit submission
     @POST(ROUTE_DEPOSIT + ROUTE_PROCESS)
     public void processDeposit(Context ctx) {
         String amountStr = ctx.form("depositamount").valueOrNull();
         logger.info("Deposit requested — raw input: '{}'", amountStr);
 
         try {
-            BigDecimal amount = parseAndValidateAmount(amountStr);
-            performDeposit(amount);
+            BigDecimal amount = accountService.parseAndValidateAmount(amountStr);
+            accountService.deposit(DEMO_ACCOUNT_ID, amount);
             ctx.session().put(SESSION_SUCCESS_MESSAGE,
                     "Successfully deposited £" + amount.toPlainString());
-            logger.info("Deposit of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
             ctx.sendRedirect(ROUTE_ACCOUNT);
 
         } catch (ArithmeticException e) {
@@ -160,120 +105,29 @@ public class AccountController {
         }
     }
 
-    // Perform deposit transaction in database
-    private void performDeposit(BigDecimal amount) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
-                account.deposit(amount);
-                updateBalance(conn, account);
-                recordTransaction(conn, DEMO_ACCOUNT_ID, "DEPOSIT", amount);
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                conn.setAutoCommit(true);
-            }
-        }
-    }
+    @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
+    public void processWithdrawal(Context ctx) {
+        String amountStr = ctx.form("withdrawamount").valueOrNull();
+        logger.info("Withdrawal requested — raw input: '{}'", amountStr);
 
-    private void performWithdrawal(BigDecimal amount) throws SQLException{
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
-                account.withdraw(amount);
-                updateBalance(conn, account);
-                recordTransaction(conn, DEMO_ACCOUNT_ID, "WITHDRAWAL", amount);
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                conn.setAutoCommit(true);
-            }
-        }
-    }
-
-    // Validate and parse transaction amount
-    private BigDecimal parseAndValidateAmount(String raw) throws ArithmeticException {
-        if (raw == null || raw.trim().isEmpty()) {
-            throw new ArithmeticException("Please enter an amount");
-        }
         try {
-            BigDecimal amount = new BigDecimal(raw.trim());
-            return amount.setScale(2, RoundingMode.HALF_UP);
-        } catch (NumberFormatException e) {
-            throw new ArithmeticException("Invalid amount — please enter a valid number");
+            BigDecimal amount = accountService.parseAndValidateAmount(amountStr);
+            accountService.withdraw(DEMO_ACCOUNT_ID, amount);
+            ctx.session().put(SESSION_SUCCESS_MESSAGE,
+                    "Successfully withdrawn £" + amount.toPlainString());
+            ctx.sendRedirect(ROUTE_ACCOUNT);
+
+        } catch (ArithmeticException e) {
+            logger.info("Withdrawal failed: {}", e.getMessage());
+            ctx.session().put(SESSION_ERROR_MESSAGE, e.getMessage());
+            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
+        } catch (SQLException e) {
+            logger.error("Database error during withdrawal", e);
+            ctx.session().put(SESSION_ERROR_MESSAGE, "A system error occurred. Please try again.");
+            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
         }
     }
 
-    // Load account from DB
-    private Account loadAccount(Connection conn, String accountId) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, accountId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (!rs.next()) {
-                    throw new SQLException("Account not found: " + accountId);
-                }
-                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal(DB_BALANCE));
-            }
-        }
-    }
-
-    // Update account balance in DB
-    private void updateBalance(Connection conn, Account account) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "UPDATE Accounts SET Balance = ? WHERE AccountID = ?")) {
-            stmt.setBigDecimal(1, account.getBalance());
-            stmt.setString(2, account.getAccountId());
-            stmt.executeUpdate();
-        }
-    }
-
-    // Record a transaction in DB
-    private void recordTransaction(Connection conn, String investorId,
-                                   String type, BigDecimal amount) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO Transactions " +
-                        "(TransactionID, InvestorID, TransactionType, Ticker, TotalCashAmount, TransactionDate) " +
-                        "VALUES (?, ?, ?, ?, ?, ?)")) {
-            stmt.setString(1, UUID.randomUUID().toString());
-            stmt.setString(2, investorId);
-            stmt.setString(3, type);
-            stmt.setNull(4, Types.VARCHAR);
-            stmt.setBigDecimal(5, amount);
-            stmt.setDate(6, Date.valueOf(LocalDate.now()));
-            stmt.executeUpdate();
-        }
-    }
-
-    // Loading transaction history
-    private List<Map<String, String>> loadTransactions(Connection conn, String accountId)
-            throws SQLException {
-        List<Map<String, String>> transactions = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT TransactionType, TotalCashAmount, TransactionDate " +
-                        "FROM Transactions WHERE InvestorID = ? " +
-                        "ORDER BY TransactionDate DESC")) {
-            stmt.setString(1, accountId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Map<String, String> row = new HashMap<>();
-                    row.put("type", rs.getString("TransactionType"));
-                    row.put("amount", String.format("%,.2f", rs.getBigDecimal("TotalCashAmount")));
-                    row.put("date", rs.getDate("TransactionDate").toString());
-                    transactions.add(row);
-                }
-            }
-        }
-        return transactions;
-    }
-
-    // Move session flash messages into the model
     private void transferFlashMessages(Context ctx, Map<String, Object> model) {
         var session = ctx.sessionOrNull();
         if (session == null) return;
