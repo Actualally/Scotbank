@@ -33,6 +33,10 @@ public class AccountController {
         this.logger = log;
     }
 
+    private boolean isTickerValid(String ticker) {
+        return Account.isValidTicker(ticker);
+    }
+
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         Map<String, Object> model = new HashMap<>();

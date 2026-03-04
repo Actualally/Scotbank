@@ -1,6 +1,7 @@
 package uk.co.asepstrath.bank;
 
 import java.math.BigDecimal;
+
 import static uk.co.asepstrath.bank.Constants.MAX_BALANCE;
 
 public class Account {
@@ -53,5 +54,12 @@ public class Account {
     public String toString() {
         return String.format("Account{id='%s', name='%s', balance=%s}",
                 accountId, name, balance);
+    }
+
+    public static boolean isValidTicker(String ticker) {
+        if (ticker == null) {
+            return false;
+        }
+        return ticker.matches(Constants.TICKER_REGEX);
     }
 }

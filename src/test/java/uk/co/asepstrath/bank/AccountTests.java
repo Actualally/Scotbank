@@ -1,8 +1,13 @@
 package uk.co.asepstrath.bank;
 
-import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 class AccountTests {
 
@@ -102,5 +107,17 @@ class AccountTests {
         for (int i = 0; i < 5; i++) a.deposit(BigDecimal.valueOf(10));
         for (int i = 0; i < 3; i++) a.withdraw(BigDecimal.valueOf(20));
         assertEquals(BigDecimal.valueOf(10), a.getBalance());
+    }
+
+    @Test
+    void testTickerValidation() {
+        // These should pass validation based on Story #2
+        assertTrue(Account.isValidTicker("AAPL"));
+        assertTrue(Account.isValidTicker("TSLA"));
+        
+        // These should fail (Business Rules: 1-5 Uppercase only)
+        assertFalse(Account.isValidTicker("apple")); // Lowercase
+        assertFalse(Account.isValidTicker("12345")); // Numbers
+        assertFalse(Account.isValidTicker("TOOLONG")); // More than 5 chars
     }
 }

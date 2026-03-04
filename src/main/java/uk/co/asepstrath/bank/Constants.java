@@ -22,5 +22,7 @@ public final class Constants {
 
     public static final BigDecimal MAX_BALANCE = BigDecimal.valueOf(999_999_999.99);
 
+    public static final String TICKER_REGEX = "^[A-Z]{1,5}$";
+
     private Constants() {}
 }
