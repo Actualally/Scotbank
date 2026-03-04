@@ -26,6 +26,7 @@ public class AccountController {
     private static final String DB_NAME = "name";
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
+    private static final String DB_TRANSACTIONS = "transactions";
 
     public AccountController(AccountService accountService, Logger log) {
         this.accountService = accountService;
@@ -46,7 +47,7 @@ public class AccountController {
             model.put(DB_ID, DEMO_ACCOUNT_ID);
 
             List<Map<String, String>> transactions = accountService.getTransactionHistory(DEMO_ACCOUNT_ID);
-            model.put("transactions", transactions);
+            model.put(DB_TRANSACTIONS, transactions);
 
         } catch (SQLException e) {
             logger.error("Error loading account", e);
