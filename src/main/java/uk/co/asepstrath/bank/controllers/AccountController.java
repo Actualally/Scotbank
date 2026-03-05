@@ -17,6 +17,15 @@ import java.util.Map;
 
 import static uk.co.asepstrath.bank.Constants.*;
 
+/**
+ * AccountController - HTTP / ROUTING LAYER
+ * This class handles incoming web requests and responses only. It reads form inputs,
+ * calls the service layer to do the actual work, then puts results into the model
+ * for the Handlebars templates to render. There should be no SQL or business logic
+ * in here. and if you find yourself writing validation or database code, it probably
+ * belongs in AccountService or AccountRepository instead.
+ */
+
 @Path(ROUTE_ACCOUNT)
 public class AccountController {
 
@@ -43,7 +52,7 @@ public class AccountController {
         try {
             Account account = accountService.getAccountDetails(DEMO_ACCOUNT_ID);
             model.put(DB_NAME, account.getName());
-            model.put(DB_BALANCE, String.format("%,.2f", account.getBalance()));
+            model.put(DB_BALANCE, String.format("%,.2f", account.getBalanceAsBigDecimal()));
             model.put(DB_ID, DEMO_ACCOUNT_ID);
 
             List<Map<String, String>> transactions = accountService.getTransactionHistory(DEMO_ACCOUNT_ID);
