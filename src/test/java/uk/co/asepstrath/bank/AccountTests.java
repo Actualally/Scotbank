@@ -16,24 +16,24 @@ class AccountTests {
         assertNotNull(a);
         assertEquals("id-1", a.getAccountId());
         assertEquals("Test User", a.getName());
-        assertEquals(BigDecimal.valueOf(100), a.getBalance());
+        assertEquals(100.0, a.getBalance(), 0.001);
     }
 
     @Test void createAccountWithNullBalance_defaultsToZero() {
         Account a = new Account("id-1", "Test", null);
-        assertEquals(BigDecimal.ZERO, a.getBalance());
+        assertEquals(0.0, a.getBalance(), 0.001);
     }
 
     @Test void deposit_positiveAmount() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
         a.deposit(BigDecimal.valueOf(50));
-        assertEquals(BigDecimal.valueOf(150), a.getBalance());
+        assertEquals(150.0, a.getBalance(), 0.001);
     }
 
     @Test void deposit_pennyPrecision() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(5.45));
         a.deposit(BigDecimal.valueOf(17.56));
-        assertEquals(BigDecimal.valueOf(23.01), a.getBalance());
+        assertEquals(23.01, a.getBalance(), 0.001);
     }
 
     @Test void deposit_multipleTimes() {
@@ -41,7 +41,7 @@ class AccountTests {
         a.deposit(BigDecimal.valueOf(10));
         a.deposit(BigDecimal.valueOf(20));
         a.deposit(BigDecimal.valueOf(30));
-        assertEquals(BigDecimal.valueOf(60), a.getBalance());
+        assertEquals(60.0, a.getBalance(), 0.001);
     }
 
     @Test void deposit_zero_throwsException() {
@@ -70,13 +70,13 @@ class AccountTests {
     @Test void withdraw_validAmount() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(100));
         a.withdraw(BigDecimal.valueOf(40));
-        assertEquals(BigDecimal.valueOf(60), a.getBalance());
+        assertEquals(60.0, a.getBalance(), 0.001);
     }
 
     @Test void withdraw_entireBalance() {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(50));
         a.withdraw(BigDecimal.valueOf(50));
-        assertEquals(BigDecimal.ZERO, a.getBalance());
+        assertEquals(0.0, a.getBalance(), 0.001);
     }
 
     @Test void withdraw_moreThanBalance_throwsException() {
@@ -106,7 +106,7 @@ class AccountTests {
         Account a = new Account("id-1", "Test", BigDecimal.valueOf(20));
         for (int i = 0; i < 5; i++) a.deposit(BigDecimal.valueOf(10));
         for (int i = 0; i < 3; i++) a.withdraw(BigDecimal.valueOf(20));
-        assertEquals(BigDecimal.valueOf(10), a.getBalance());
+        assertEquals(10.0, a.getBalance(), 0.001);
     }
 
     @Test

@@ -11,6 +11,15 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * AccountService - BUSINESS LOGIC LAYER
+ * This class sits between the controller and the repository. It handles validation,
+ * business rules (e.g. checking balances, parsing amounts), and coordinates database
+ * transactions. The controller calls this class, and it never touches
+ * the database directly. If you need to add new business rules or processing steps
+ * (e.g. for the upcoming stock trading features), add them here.
+ */
+
 public class AccountService {
 
     private final AccountRepository accountRepository;

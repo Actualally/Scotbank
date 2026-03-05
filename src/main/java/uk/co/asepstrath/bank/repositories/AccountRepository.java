@@ -13,6 +13,13 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * AccountRepository - DATA ACCESS LAYER
+ * This class is the only place that talks directly to the database for account-related operations.
+ * All SQL queries (selects, updates, inserts) for accounts and transactions live here.
+ * If you need to change how data is stored or retrieved, this is where to do it.
+ */
+
 public class AccountRepository {
 
     private final DataSource dataSource;
@@ -55,7 +62,7 @@ public class AccountRepository {
     public void updateBalance(Connection conn, Account account) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "UPDATE Accounts SET Balance = ? WHERE AccountID = ?")) {
-            stmt.setBigDecimal(1, account.getBalance());
+            stmt.setBigDecimal(1, account.getBalanceAsBigDecimal());
             stmt.setString(2, account.getAccountId());
             stmt.executeUpdate();
         }
