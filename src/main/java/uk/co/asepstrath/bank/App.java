@@ -63,6 +63,7 @@ public class App extends Jooby {
                     AccountID VARCHAR(64) NOT NULL,
                     Name VARCHAR(128) NOT NULL,
                     Balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                    Password VARCHAR(128) NOT NULL DEFAULT '',
                     PRIMARY KEY (AccountID)
                 )
             """);
@@ -83,8 +84,8 @@ public class App extends Jooby {
 
             //this is an example account for testing purposes
             stmt.executeUpdate("""
-                MERGE INTO Accounts (AccountID, Name, Balance)
-                VALUES ('investor-001', 'Demo Investor', 1000.00)
+                MERGE INTO Accounts (AccountID, Name, Balance, Password)
+                VALUES ('investor-001', 'Demo Investor', 1000.00, 'testpassword')
             """);
 
             log.info("Database tables created and seeded successfully");
