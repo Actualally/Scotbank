@@ -9,16 +9,52 @@ import org.slf4j.Logger;
 import uk.co.asepstrath.bank.Account;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static uk.co.asepstrath.bank.Constants.*;
-
+@Path(ROUTE_LOGIN)
 public class LoginController {
+
+	private final DataSource dataSource;
+  	private final Logger logger;
+
+  	public LoginController(DataSource ds, Logger log) {
+    	this.dataSource = ds;
+        this.logger = log;
+    }
+
+
+	@GET
+	public ModelAndView showLoginPage(Context ctx) {
+
+		Map<String, Object> model = new HashMap<>();
+
+		var session = ctx.sessionOrNull();
+
+
+		//checks if user is logged in and redirects if they are
+        if (session != null && session.get(SESSION_ACCOUNT_ID).isPresent()) {
+            ctx.sendRedirect(ROUTE_ACCOUNT);
+        }
+		transferFlashMessages(ctx, model);
+		return new ModelAndView(TEMPLATE_LOGIN, model);
+		
+	}
+
+
+
+	private void transferFlashMessages(Context ctx, Map<String, Object> model) {
+        var session = ctx.sessionOrNull();
+        if (session == null) return;
+        for (String key : new String[]{SESSION_SUCCESS_MESSAGE, SESSION_ERROR_MESSAGE}) {
+            if (session.get(key).isPresent()) {
+                model.put(key, session.get(key).value());
+                session.remove(key);
+            }
+        }
+    }
   
 }
