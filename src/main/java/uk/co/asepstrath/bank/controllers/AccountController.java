@@ -24,7 +24,6 @@ public class AccountController {
 
     private final DataSource dataSource;
     private final Logger logger;
-    private static final String DEMO_ACCOUNT_ID = "investor-001";
     private static final String DB_NAME = "name";
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
@@ -35,19 +34,29 @@ public class AccountController {
         this.logger = log;
     }
 
+    private String getAccountID(Context ctx){
+        var session = ctx.sessionOrNull();
+        if (session == null || !session.get(SESSION_ACCOUNT_ID).isPresent()) {
+            ctx.sendRedirect(ROUTE_LOGIN);
+            return null;
+        }
+        return session.get(SESSION_ACCOUNT_ID).value();
+    }
+
     // Show main account page
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
+        String accountID = getAccountID(ctx);
         Map<String, Object> model = new HashMap<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT Name, Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
+            stmt.setString(1, accountID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     model.put(DB_NAME, rs.getString("Name"));
                     model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
-                    model.put(DB_ID, DEMO_ACCOUNT_ID);
+                    model.put(DB_ID, accountID);
                 }
             }
         } catch (SQLException e) {
@@ -61,11 +70,12 @@ public class AccountController {
     // Show deposit form with current balance
     @GET(ROUTE_DEPOSIT)
     public ModelAndView<Map<String, Object>> showDepositForm(Context ctx) {
+        String accountID = getAccountID(ctx);
         Map<String, Object> model = new HashMap<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
+            stmt.setString(1, accountID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
@@ -81,11 +91,12 @@ public class AccountController {
     // Show withdrawal form with current balance
     @GET(ROUTE_WITHDRAW)
     public ModelAndView<Map<String,Object>> showWithdrawalForm(Context ctx) {
+        String accountID = getAccountID(ctx);
         Map<String,Object> model = new HashMap<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT Balance FROM Accounts WHERE AccountID = ?")) {
-            stmt.setString(1, DEMO_ACCOUNT_ID);
+            stmt.setString(1, accountID);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     model.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE).toPlainString());
@@ -100,17 +111,18 @@ public class AccountController {
 
     @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
     public void processWithdrawal(Context ctx){
+        String accountID = getAccountID(ctx);
         String amountstr = ctx.form("withdrawamount").valueOrNull();
         logger.info("Withdrawal requested - raw input: '{}'", amountstr);
 
         try {
             BigDecimal amount = parseAndValidateAmount(amountstr);
-            performWithdrawal(amount);
+            performWithdrawal(accountID, amount);
             ctx.session().put(SESSION_SUCCESS_MESSAGE, 
                 "Successfully withdrawn £" + amount.toPlainString()
             );
 
-            logger.info("Withdrawal of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
+            logger.info("Withdrawal of £{} successful for {}", amount, accountID);
             ctx.sendRedirect(ROUTE_ACCOUNT);
 
         }catch (ArithmeticException e){
@@ -127,15 +139,16 @@ public class AccountController {
     // Handle deposit submission
     @POST(ROUTE_DEPOSIT + ROUTE_PROCESS)
     public void processDeposit(Context ctx) {
+        String accountID = getAccountID(ctx);
         String amountStr = ctx.form("depositamount").valueOrNull();
         logger.info("Deposit requested — raw input: '{}'", amountStr);
 
         try {
             BigDecimal amount = parseAndValidateAmount(amountStr);
-            performDeposit(amount);
+            performDeposit(accountID, amount);
             ctx.session().put(SESSION_SUCCESS_MESSAGE,
                     "Successfully deposited £" + amount.toPlainString());
-            logger.info("Deposit of £{} successful for {}", amount, DEMO_ACCOUNT_ID);
+            logger.info("Deposit of £{} successful for {}", amount, accountID);
             ctx.sendRedirect(ROUTE_ACCOUNT);
 
         } catch (ArithmeticException e) {
@@ -150,14 +163,15 @@ public class AccountController {
     }
 
     // Perform deposit transaction in database
-    private void performDeposit(BigDecimal amount) throws SQLException {
+    private void performDeposit(String accountID, BigDecimal amount) throws SQLException {
+        
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
+                Account account = loadAccount(conn, accountID);
                 account.deposit(amount);
                 updateBalance(conn, account);
-                recordTransaction(conn, DEMO_ACCOUNT_ID, "DEPOSIT", amount);
+                recordTransaction(conn, accountID, "DEPOSIT", amount);
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -168,14 +182,15 @@ public class AccountController {
         }
     }
 
-    private void performWithdrawal(BigDecimal amount) throws SQLException{
+    private void performWithdrawal(String accountID, BigDecimal amount) throws SQLException{
+        
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                Account account = loadAccount(conn, DEMO_ACCOUNT_ID);
+                Account account = loadAccount(conn, accountID);
                 account.withdraw(amount);
                 updateBalance(conn, account);
-                recordTransaction(conn, DEMO_ACCOUNT_ID, "WITHDRAWAL", amount);
+                recordTransaction(conn, accountID, "WITHDRAWAL", amount);
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
