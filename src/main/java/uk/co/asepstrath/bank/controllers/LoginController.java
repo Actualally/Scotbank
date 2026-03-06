@@ -45,7 +45,7 @@ public class LoginController {
 
 	@POST
 	public void Login(Context ctx){
-		String accountID = ctx.form("accountID").valueOrNull();
+		String accountID = ctx.form("accountid").valueOrNull();
 		String Password = ctx.form("password").valueOrNull();
 
 		if (accountID == null || Password == null) {

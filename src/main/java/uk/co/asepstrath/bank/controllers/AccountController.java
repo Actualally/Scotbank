@@ -37,13 +37,12 @@ public class AccountController {
     private String getAccountID(Context ctx){
         var session = ctx.sessionOrNull();
         if (session == null || !session.get(SESSION_ACCOUNT_ID).isPresent()) {
-            ctx.sendRedirect(ROUTE_LOGIN);
+            ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_LOGIN);
             return null;
         }
         return session.get(SESSION_ACCOUNT_ID).value();
     }
 
-    // Show main account page
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         String accountID = getAccountID(ctx);

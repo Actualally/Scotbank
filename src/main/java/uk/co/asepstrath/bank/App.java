@@ -10,7 +10,7 @@ import io.jooby.helper.UniRestExtension;
 import io.jooby.hikari.HikariModule;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.controllers.AccountController_;
-
+import uk.co.asepstrath.bank.controllers.LoginController_;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -38,6 +38,7 @@ public class App extends Jooby {
 
         // Register controller(s) for MVC routes
         mvc(new AccountController_(ds, log));
+        mvc(new LoginController_(ds, log));
 
         // Lifecycle hooks
         onStarted(this::onStart); // after the server starts
