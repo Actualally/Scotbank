@@ -1,0 +1,34 @@
+--General Overview
+
+--Completed tasks
+-withdrawl timestamp
+-view withdrawls
+-deposit timestamp 
+-transaction type withdrawl
+-transaction type deposits
+-view deposits
+-stock ticker symbol
+
+
+--Currently working on
+-Ryan is working on the login system
+-Alexander is working on making the cash account QA tests work
+-James is working on investment general functionality
+-Nour is working on updating new user stories and issue board 
+-Spencer ...
+
+--What Went Well technique
+
+--What went well
+-Improved our communication, by having a Teams and WhatsApp groupchat
+-Completed most of functionality for cash account features
+-Issue board now works and it is continously updated with progress of work
+
+--What didn't go so well?
+-Log-in system
+-SonarQube server was down for a few days, so it slowed down progress
+-Inconsisent work spread with a group member
+
+--How could we improve?
+-Get group communication figured out in lab
+-Take some time to properly prioritise/delegate tasks

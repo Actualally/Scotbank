@@ -12,6 +12,18 @@ class IntegrationTest {
     static OkHttpClient client = new OkHttpClient.Builder()
             .followRedirects(false).build();
 
+    @Test void accountPage_showsDemoInvestor(int serverPort) throws IOException {
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account").build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(200, rsp.code());
+            ResponseBody body = rsp.body();
+            assertNotNull(body);
+            assertTrue(body.string().contains("Demo Investor"));
+        }
+    }
+
+
     @Test void depositPage_loads(int serverPort) throws IOException {
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account/deposit").build();
@@ -22,17 +34,6 @@ class IntegrationTest {
             String content = body.string();
             assertTrue(content.contains("Deposit Money"));
             assertTrue(content.contains("depositamount"));
-        }
-    }
-
-    @Test void accountPage_showsDemoInvestor(int serverPort) throws IOException {
-        Request req = new Request.Builder()
-                .url("http://localhost:" + serverPort + "/account").build();
-        try (Response rsp = client.newCall(req).execute()) {
-            assertEquals(200, rsp.code());
-            ResponseBody body = rsp.body();
-            assertNotNull(body);
-            assertTrue(body.string().contains("Demo Investor"));
         }
     }
 
@@ -57,6 +58,55 @@ class IntegrationTest {
             String location = rsp.header("Location");
             assertNotNull(location);
             assertTrue(location.contains("/deposit"));
+        }
+    }
+
+    @Test void withdrawal_page_loads(int serverPort) throws IOException{
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/withdraw").build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(200, rsp.code());
+            ResponseBody body = rsp.body();
+            assertNotNull(body);
+            String content = body.string();
+            assertTrue(content.contains("Withdraw Money"));
+            assertTrue(content.contains("withdrawamount"));
+        }
+    }
+
+    @Test void withdraw_valid_amount_redirectsToAccount(int serverPort) throws IOException{
+        RequestBody form = new FormBody.Builder().add("withdrawamount", "50.00").build();
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/withdraw/process").post(form).build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(302, rsp.code());
+            String location = rsp.header("Location");
+            assertNotNull(location);
+            assertTrue(location.contains("/account"));
+        }
+    }
+
+    @Test void withdraw_negative_amount_redirectsToWithdraw(int serverPort) throws IOException{
+        RequestBody form = new FormBody.Builder().add("withdrawamount", "-10.00").build();
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/withdraw/process").post(form).build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(302, rsp.code());
+            String location = rsp.header("Location");
+            assertNotNull(location);
+            assertTrue(location.contains("/withdraw"));
+        }
+    }
+
+    @Test void withdraw_more_than_balance_redirectsToWithdraw(int serverPort) throws IOException{
+        RequestBody form = new FormBody.Builder().add("withdrawamount", "100000.00").build();
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/withdraw/process").post(form).build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(302, rsp.code());
+            String location = rsp.header("Location");
+            assertNotNull(location);
+            assertTrue(location.contains("/withdraw"));
         }
     }
 }

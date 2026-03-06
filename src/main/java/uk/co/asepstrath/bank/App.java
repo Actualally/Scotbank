@@ -10,7 +10,9 @@ import io.jooby.helper.UniRestExtension;
 import io.jooby.hikari.HikariModule;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.controllers.AccountController_;
-import uk.co.asepstrath.bank.controllers.LoginController_;
+import uk.co.asepstrath.bank.repositories.AccountRepository;
+import uk.co.asepstrath.bank.services.AccountService;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,9 +38,11 @@ public class App extends Jooby {
         DataSource ds = require(DataSource.class);
         Logger log = getLog();
 
+        AccountRepository accountRepository = new AccountRepository(ds);
+        AccountService accountService = new AccountService(accountRepository, log);
+
         // Register controller(s) for MVC routes
-        mvc(new AccountController_(ds, log));
-        mvc(new LoginController_(ds, log));
+        mvc(new AccountController_(accountService, log));
 
         // Lifecycle hooks
         onStarted(this::onStart); // after the server starts
@@ -64,7 +68,6 @@ public class App extends Jooby {
                     AccountID VARCHAR(64) NOT NULL,
                     Name VARCHAR(128) NOT NULL,
                     Balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-                    Password VARCHAR(128) NOT NULL DEFAULT '',
                     PRIMARY KEY (AccountID)
                 )
             """);
@@ -85,8 +88,8 @@ public class App extends Jooby {
 
             //this is an example account for testing purposes
             stmt.executeUpdate("""
-                MERGE INTO Accounts (AccountID, Name, Balance, Password)
-                VALUES ('investor-001', 'Demo Investor', 1000.00, 'testpassword')
+                MERGE INTO Accounts (AccountID, Name, Balance)
+                VALUES ('investor-001', 'Demo Investor', 1000.00)
             """);
 
             log.info("Database tables created and seeded successfully");
