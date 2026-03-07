@@ -31,7 +31,6 @@ public class AccountController {
 
     private final AccountService accountService;
     private final Logger logger;
-    private static final String DEMO_ACCOUNT_ID = "investor-001";
     private static final String DB_NAME = "name";
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
@@ -42,20 +41,30 @@ public class AccountController {
         this.logger = log;
     }
 
+    private String getAccountID(Context ctx) {
+        var session = ctx.sessionOrNull();
+        if (session == null || !session.get(SESSION_ACCOUNT_ID).isPresent()) {
+            ctx.sendRedirect(ROUTE_LOGIN);
+            return null;
+        }
+        return session.get(SESSION_ACCOUNT_ID).value();
+    }
+
     private boolean isTickerValid(String ticker) {
         return Account.isValidTicker(ticker);
     }
 
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
+        String accountID = getAccountID(ctx);
         Map<String, Object> model = new HashMap<>();
         try {
-            Account account = accountService.getAccountDetails(DEMO_ACCOUNT_ID);
+            Account account = accountService.getAccountDetails(accountID);
             model.put(DB_NAME, account.getName());
             model.put(DB_BALANCE, String.format("%,.2f", account.getBalanceAsBigDecimal()));
-            model.put(DB_ID, DEMO_ACCOUNT_ID);
+            model.put(DB_ID, accountID);
 
-            List<Map<String, String>> transactions = accountService.getTransactionHistory(DEMO_ACCOUNT_ID);
+            List<Map<String, String>> transactions = accountService.getTransactionHistory(accountID);
             model.put(DB_TRANSACTIONS, transactions);
 
         } catch (SQLException e) {
@@ -68,9 +77,14 @@ public class AccountController {
 
     @GET(ROUTE_DEPOSIT)
     public ModelAndView<Map<String, Object>> showDepositForm(Context ctx) {
+        String accountID = getAccountID(ctx);
+        if (accountID == null) {
+            return new ModelAndView<>(TEMPLATE_DEPOSIT, new HashMap<>());
+        }
+
         Map<String, Object> model = new HashMap<>();
         try {
-            BigDecimal balance = accountService.getBalance(DEMO_ACCOUNT_ID);
+            BigDecimal balance = accountService.getBalance(accountID);
             if (balance != null) {
                 model.put(DB_BALANCE, balance.toPlainString());
             }
@@ -83,9 +97,14 @@ public class AccountController {
 
     @GET(ROUTE_WITHDRAW)
     public ModelAndView<Map<String, Object>> showWithdrawalForm(Context ctx) {
+        String accountID = getAccountID(ctx);
+        if (accountID == null) {
+            return new ModelAndView<>(TEMPLATE_DEPOSIT, new HashMap<>());
+        }
+
         Map<String, Object> model = new HashMap<>();
         try {
-            BigDecimal balance = accountService.getBalance(DEMO_ACCOUNT_ID);
+            BigDecimal balance = accountService.getBalance(accountID);
             if (balance != null) {
                 model.put(DB_BALANCE, balance.toPlainString());
             }
@@ -98,12 +117,13 @@ public class AccountController {
 
     @POST(ROUTE_DEPOSIT + ROUTE_PROCESS)
     public void processDeposit(Context ctx) {
+        String accountID = getAccountID(ctx);
         String amountStr = ctx.form("depositamount").valueOrNull();
         logger.info("Deposit requested — raw input: '{}'", amountStr);
 
         try {
             BigDecimal amount = accountService.parseAndValidateAmount(amountStr);
-            accountService.deposit(DEMO_ACCOUNT_ID, amount);
+            accountService.deposit(accountID, amount);
             ctx.session().put(SESSION_SUCCESS_MESSAGE,
                     "Successfully deposited £" + amount.toPlainString());
             ctx.sendRedirect(ROUTE_ACCOUNT);
@@ -121,12 +141,13 @@ public class AccountController {
 
     @POST(ROUTE_WITHDRAW + ROUTE_PROCESS)
     public void processWithdrawal(Context ctx) {
+        String accountID = getAccountID(ctx);
         String amountStr = ctx.form("withdrawamount").valueOrNull();
         logger.info("Withdrawal requested — raw input: '{}'", amountStr);
 
         try {
             BigDecimal amount = accountService.parseAndValidateAmount(amountStr);
-            accountService.withdraw(DEMO_ACCOUNT_ID, amount);
+            accountService.withdraw(accountID, amount);
             ctx.session().put(SESSION_SUCCESS_MESSAGE,
                     "Successfully withdrawn £" + amount.toPlainString());
             ctx.sendRedirect(ROUTE_ACCOUNT);
