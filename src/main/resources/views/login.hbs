@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Scotbank Investments</h1>
+        <p class="balance">Sign in to your account</p>
+
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        <form action="/login" method="post" id="loginForm">
+            <label for="accountid">Account ID</label>
+            <input type="text" id="accountid" name="accountid"
+                placeholder="e.g. investor-001" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                placeholder="Enter your password" required>
+
+            <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('login').addEventListener('submit', function() {
+            document.getElementById('loginBtn').disabled = true;
+            document.getElementById('loginBtn').textContent = 'Signing in...';
+        });
+
+        window.addEventListener('showPage', function() {
+            var btn = document.getElementById('loginBtn');
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        });
+    </script>
+</body>
+</html>

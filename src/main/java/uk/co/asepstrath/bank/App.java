@@ -10,6 +10,7 @@ import io.jooby.helper.UniRestExtension;
 import io.jooby.hikari.HikariModule;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.controllers.AccountController_;
+import uk.co.asepstrath.bank.controllers.LoginController_;
 import uk.co.asepstrath.bank.repositories.AccountRepository;
 import uk.co.asepstrath.bank.services.AccountService;
 
@@ -43,6 +44,7 @@ public class App extends Jooby {
 
         // Register controller(s) for MVC routes
         mvc(new AccountController_(accountService, log));
+        mvc(new LoginController_(ds, log));
 
         // Lifecycle hooks
         onStarted(this::onStart); // after the server starts
@@ -67,6 +69,7 @@ public class App extends Jooby {
                 CREATE TABLE IF NOT EXISTS Accounts (
                     AccountID VARCHAR(64) NOT NULL,
                     Name VARCHAR(128) NOT NULL,
+                    Password VARCHAR(128) NOT NULL DEFAULT '',
                     Balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
                     PRIMARY KEY (AccountID)
                 )
@@ -88,8 +91,8 @@ public class App extends Jooby {
 
             //this is an example account for testing purposes
             stmt.executeUpdate("""
-                MERGE INTO Accounts (AccountID, Name, Balance)
-                VALUES ('investor-001', 'Demo Investor', 1000.00)
+                MERGE INTO Accounts (AccountID, Name, Password, Balance)
+                VALUES ('investor-001', 'Demo Investor', 'password', 1000.00)
             """);
 
             log.info("Database tables created and seeded successfully");
