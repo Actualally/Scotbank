@@ -6,6 +6,7 @@ public final class Constants {
 
     public static final String ROUTE_ACCOUNT = "/account";
     public static final String ROUTE_LOGIN = "/login";
+    public static final String ROUTE_CREATEACC = "/register";
     public static final String ROUTE_DEPOSIT = "/deposit";
     public static final String ROUTE_WITHDRAW = "/withdraw"; //might violate on sonarQube, will ask on Wednesday week 6
     public static final String ROUTE_PROCESS = "/process";
@@ -15,6 +16,7 @@ public final class Constants {
     public static final String TEMPLATE_ACCOUNT = "account.hbs";
     public static final String TEMPLATE_WITHDRAW = "withdraw.hbs";
     public static final String TEMPLATE_LOGIN = "login.hbs";
+    public static final String TEMPLATE_CREATE = "create.hbs";
 
     public static final String SESSION_ACCOUNT_ID = "accountid"; //might violate on sonarQube, will ask on Wednesday week 6
     public static final String SESSION_ACCOUNT_NAME = "name"; //might violate on sonarQube, will ask on Wednesday week 6
