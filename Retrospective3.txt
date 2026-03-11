@@ -13,7 +13,7 @@
 
 
 --Currently working on
--Ryan is adding encryption,tidying up and adding forgot password 
+-Ryan is adding encryption,tidying up on connecting the log in with create account page, security implementation and adding forgot password 
 -Alexander is working on fetching ths data from the api and synching to database
 -James is working on investment general functionality
 -Nour is working on updating issue board and Transaction History UI
@@ -32,4 +32,10 @@
 
 --How could we improve?
 -Increased meetings to push more features in preparation for presentation
+
+--Action List 
+-Nour: account page focus on UI dashboard
+-Ryan: logging in/out, encryption for password (security), forgot password 
+-Alexander:
+-James: 
 
