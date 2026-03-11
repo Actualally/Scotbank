@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Scotbank Investments</h1>
+        <p class="balance">Create a new account</p>
+
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+
+        <form action="/login/register" method="post" id="createAccForm">
+
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+            <button type="submit" class="btn btn-primary" id="Createbtn">Create Account</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('createAccForm').addEventListener('submit', function() {
+            document.getElementById('Createbtn').disabled = true;
+            document.getElementById('Createbtn').textContent = 'Creating account...';
+        });
+
+        window.addEventListener('showPage', function() {
+            var btn = document.getElementById('Createbtn');
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+        });
+    </script>
+</body>
+</html>
