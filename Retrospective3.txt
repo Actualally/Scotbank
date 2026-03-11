@@ -16,7 +16,7 @@
 -Ryan is adding encryption,tidying up and adding forgot password 
 -Alexander is working on fetching ths data from the api and synching to database
 -James is working on investment general functionality
--Nour is working on updating issue board and adding persistent data
+-Nour is working on updating issue board and Transaction History UI
 -Spencer ...
 
 --What Went Well technique
@@ -31,5 +31,5 @@
 -Inconsisent work spread with a group member
 
 --How could we improve?
--Increased throughout to push more features in preparation for presentation
+-Increased meetings to push more features in preparation for presentation
 
