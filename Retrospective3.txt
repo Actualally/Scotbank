@@ -13,10 +13,10 @@
 
 
 --Currently working on
--Ryan is adding encryption and to do tidy up 
--Alexander is working on 
+-Ryan is adding encryption,tidying up and adding forgot password 
+-Alexander is working on fetching ths data from the api and synching to database
 -James is working on investment general functionality
--Nour is working on updating issue board and 
+-Nour is working on updating issue board and adding persistent data
 -Spencer ...
 
 --What Went Well technique
