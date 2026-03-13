@@ -8,102 +8,44 @@ import io.jooby.Jooby;
 import io.jooby.handlebars.HandlebarsModule;
 import io.jooby.helper.UniRestExtension;
 import io.jooby.hikari.HikariModule;
+
 import org.slf4j.Logger;
-import uk.co.asepstrath.bank.controllers.AccountController_;
-import uk.co.asepstrath.bank.controllers.LoginController_;
-import uk.co.asepstrath.bank.repositories.AccountRepository;
-import uk.co.asepstrath.bank.services.AccountService;
+
+import uk.co.asepstrath.bank.controllers.*;
+import uk.co.asepstrath.bank.repositories.*;
+import uk.co.asepstrath.bank.services.*;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 public class App extends Jooby {
 
-    public App(){
+    private AppLifecycleManager lifecycleManager;
 
-        // Install extensions and modules
+    public App() {
         install(new UniRestExtension());
         install(new HandlebarsModule());
         install(new HikariModule("mem"));
 
-        // Set up in-memory session store with named cookie
         setSessionStore(SessionStore.memory(Cookie.session("scotbank")));
 
-        // Serve static assets
         assets("/assets/*", "/assets");
-        assets("/service_worker.js","/service_worker.js");
+        assets("/service_worker.js", "/service_worker.js");
 
-        // Obtain shared DataSource and logger
         DataSource ds = require(DataSource.class);
         Logger log = getLog();
 
         AccountRepository accountRepository = new AccountRepository(ds);
         AccountService accountService = new AccountService(accountRepository, log);
 
-        // Register controller(s) for MVC routes
         mvc(new AccountController_(accountService, log));
         mvc(new LoginController_(ds, log));
 
-        // Lifecycle hooks
-        onStarted(this::onStart); // after the server starts
-        onStop(this::onStop); // before the server stops
+        lifecycleManager = new AppLifecycleManager(ds, log);
+        onStarted(lifecycleManager::onStart);
+        onStop(lifecycleManager::onStop);
     }
 
     public static void main(final String[] args) {
         runApp(args, new NettyServer(new ServerOptions()), App::new);
-    }
-
-    // Initialize database tables and seed demo account
-    public void onStart() {
-        Logger log = getLog();
-        log.info("Starting Up...");
-
-        DataSource ds = require(DataSource.class);
-        try (Connection connection = ds.getConnection();
-             Statement stmt = connection.createStatement()) {
-
-            //if the Accounts table does not exist already create one
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS Accounts (
-                    AccountID VARCHAR(64) NOT NULL,
-                    Name VARCHAR(128) NOT NULL,
-                    Password VARCHAR(128) NOT NULL DEFAULT '',
-                    Balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-                    PRIMARY KEY (AccountID)
-                )
-            """);
-
-            //if the Transactions table does not exist also create one
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS Transactions (
-                    TransactionID VARCHAR(64) NOT NULL,
-                    InvestorID VARCHAR(64) NOT NULL,
-                    TransactionType VARCHAR(20) NOT NULL,
-                    Ticker VARCHAR(10) NULL,
-                    TotalCashAmount DECIMAL(12,2) NOT NULL,
-                    TransactionDate DATE NOT NULL,
-                    PRIMARY KEY (TransactionID),
-                    FOREIGN KEY (InvestorID) REFERENCES Accounts(AccountID)
-                )
-            """);
-
-            //this is an example account for testing purposes
-            stmt.executeUpdate("""
-                MERGE INTO Accounts (AccountID, Name, Password, Balance)
-                VALUES ('investor-001', 'Demo Investor', 'password', 1000.00)
-            """);
-
-            log.info("Database tables created and seeded successfully");
-        } catch (SQLException e) {
-            log.error("Database Creation Error", e);
-        }
-    }
-
-    //Logs that the server is shutting down
-    public void onStop() {
-        Logger log = getLog();
-        log.info("Shutting Down...");
     }
 }
