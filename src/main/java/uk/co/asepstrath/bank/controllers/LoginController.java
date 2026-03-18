@@ -69,11 +69,11 @@ public class LoginController {
 	}
 
 	@POST
-	public void Login(Context ctx){
+	public void login(Context ctx){
 		String accountID = ctx.form("accountid").valueOrNull();
-		String Password = ctx.form("password").valueOrNull();
+		String password = ctx.form("password").valueOrNull();
 
-		if (accountID == null || Password == null) {
+		if (accountID == null || password == null) {
 			ctx.session().put(SESSION_ERROR_MESSAGE, "Please enter account ID and password");
 			ctx.sendRedirect(ROUTE_LOGIN);
 			return;
@@ -89,7 +89,7 @@ public class LoginController {
 			try (ResultSet rs = stmt.executeQuery()) {
 				if (rs.next()) {
 					String inputPassword = rs.getString("Password");
-					if(inputPassword.equals(Password)) {
+					if(inputPassword.equals(password)) {
 						ctx.session().put(SESSION_ACCOUNT_ID, rs.getString("AccountID"));
 						ctx.session().put(SESSION_ACCOUNT_NAME, rs.getString("Name"));
 						logger.info("Login Succesful");
@@ -120,9 +120,9 @@ public class LoginController {
 	@POST(ROUTE_CREATEACC)
 	public void processCreateAcc(Context ctx){
 		String name = ctx.form("name").valueOrNull();
-		String Password = ctx.form("password").valueOrNull();
+		String password = ctx.form("password").valueOrNull();
 
-		if(name == null || Password == null){
+		if(name == null || password == null){
 			ctx.session().put(SESSION_ERROR_MESSAGE, "Please enter name and password");
 			ctx.sendRedirect(ROUTE_LOGIN + ROUTE_CREATEACC);
 			return;
@@ -137,7 +137,7 @@ public class LoginController {
 
 			stmt.setString(1, accountID);
 			stmt.setString(2, name);
-			stmt.setString(3, Password);
+			stmt.setString(3, password);
 			stmt.executeUpdate();
 
 			logger.info("Account created with ID: {}", accountID);

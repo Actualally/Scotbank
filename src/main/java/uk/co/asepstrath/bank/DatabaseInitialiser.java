@@ -17,7 +17,7 @@ public class DatabaseInitialiser {
         this.log = log;
     }
 
-    public void initializeSchema() {
+    public void initialiseSchema() {
         try (Connection conn = ds.getConnection();
              Statement stmt = conn.createStatement()) {
 
@@ -95,14 +95,27 @@ public class DatabaseInitialiser {
              Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("""
-                MERGE INTO Accounts (AccountID, Name, Password, Balance)
-                VALUES ('investor-001', 'Demo Investor', 'password', 1000.00)
-            """);
+            MERGE INTO Accounts (AccountID, Name, Password, Balance)
+            VALUES ('investor-001', 'Demo Investor', 'password', 1000.00)
+        """);
 
             log.info("Demo account seeded");
 
         } catch (SQLException e) {
             log.error("Failed to seed demo account", e);
+        }
+    }
+
+    public void seedDemoHolding() {
+        try (Connection conn = ds.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("""
+            MERGE INTO Holdings (InvestorID, Ticker, Shares, TotalCost)
+            VALUES ('investor-001', 'MRH', 10, 1000.00)
+        """);
+            log.info("Demo holding seeded");
+        } catch (SQLException e) {
+            log.error("Failed to seed demo holding", e);
         }
     }
 }

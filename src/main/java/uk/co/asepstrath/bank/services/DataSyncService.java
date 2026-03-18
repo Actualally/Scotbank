@@ -2,7 +2,6 @@ package uk.co.asepstrath.bank.services;
 
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.models.*;
-import uk.co.asepstrath.bank.services.ApiService;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -20,7 +19,7 @@ public class DataSyncService {
         this.ds = ds;
         this.log = log;
         this.apiService = new ApiService(log);
-        this.transactionProcessor = new TransactionProcessor(log);
+        this.transactionProcessor = new TransactionProcessor(log, apiService);
     }
 
     public void syncAll() {
@@ -29,7 +28,6 @@ public class DataSyncService {
             syncEquities(conn);
             syncETFs(conn);
             syncTransactions(conn);
-            log.info("API data sync complete");
         } catch (SQLException e) {
             log.error("Data sync failed", e);
         }
@@ -95,6 +93,11 @@ public class DataSyncService {
     }
 
     private void syncTransactions(Connection conn) throws SQLException {
+
+        try (Statement clear = conn.createStatement()) {
+            clear.executeUpdate("DELETE FROM Holdings");
+        }
+
         List<Transaction> transactions = apiService.fetchAllTransactions();
         transactions.sort((a, b) -> a.getDate().compareTo(b.getDate()));
 
@@ -108,6 +111,7 @@ public class DataSyncService {
              PreparedStatement holdingGet = conn.prepareStatement(
                      "SELECT Shares, TotalCost FROM Holdings WHERE InvestorID = ? AND Ticker = ?")) {
 
+            prewarmPriceCache(transactions);
             for (Transaction t : transactions) {
                 txStmt.setString(1, t.getId().toString());
                 txStmt.setString(2, t.getInvestorId().toString());
@@ -116,9 +120,21 @@ public class DataSyncService {
                 txStmt.setBigDecimal(5, BigDecimal.valueOf(t.getTotalCashAmount()));
                 txStmt.setDate(6, Date.valueOf(t.getDate()));
                 txStmt.addBatch();
+
+                transactionProcessor.applyTransaction(
+                        t, holdingGet, holdingMerge);
             }
             txStmt.executeBatch();
         }
         log.info("Synced {} transactions", transactions.size());
+    }
+
+    private void prewarmPriceCache(List<Transaction> transactions) {
+        transactions.stream()
+                .map(Transaction::getTicker)
+                .filter(t -> t != null && !t.isEmpty())
+                .distinct()
+                .forEach(apiService::fetchPrices);
+        log.info("Price cache pre-warmed");
     }
 }

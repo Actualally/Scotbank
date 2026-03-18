@@ -61,7 +61,7 @@ class ApiServiceTest {
 
         UUID id = UUID.randomUUID();
 
-        Investor investor = apiService.fetchInvestorDetails(id);
+        apiService.fetchInvestorDetails(id);
 
         // Since API call is external we just verify method does not crash
         assertTrue(true);

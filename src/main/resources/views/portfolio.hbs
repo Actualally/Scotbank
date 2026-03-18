@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="stylesheet" href="/assets/portfolio.css">
+</head>
+<body>
+    <div class="card card-wide">
+        <h1>Portfolio</h1>
+        <p class="account-id">{{name}} — {{accountId}}</p>
+
+        {{#if success}}
+            <div class="msg-success">{{success}}</div>
+        {{/if}}
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        <div class="balance-row">
+            <div class="balance-card cash">
+                <div class="label">Cash Available</div>
+                <div class="value">£{{balance}}</div>
+            </div>
+            <div class="balance-card invested">
+                <div class="label">Total Invested</div>
+                <div class="value">£{{totalInvested}}</div>
+            </div>
+            <div class="balance-card invested">
+                <div class="label">Portfolio Value</div>
+                <div class="value">£{{totalCurrentValue}}</div>
+            </div>
+            <div class="balance-card {{#if totalGainLossPositive}}gain{{else}}loss{{/if}}">
+                <div class="label">Total Gain/Loss</div>
+                <div class="value">£{{totalGainLoss}} ({{totalGainLossPct}}%)</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/trade/buy" class="btn btn-buy">Buy Shares</a>
+            <a href="/trade/sell" class="btn btn-sell">Sell Shares</a>
+        </div>
+
+        <div class="actions">
+            <a href="/account" class="btn btn-withdraw">Account</a>
+            <a href="/market/equities" class="btn btn-withdraw">Browse Market</a>
+        </div>
+
+        {{#if hasHoldings}}
+        <h2>Your Holdings</h2>
+        <table class="transaction-table">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Sector</th>
+                    <th>Shares</th>
+                    <th>Avg Price</th>
+                    <th>Invested</th>
+                    <th>Current Value</th>
+                    <th>Gain/Loss</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each holdings}}
+                <tr>
+                    <td><a href="/market/prices/{{this.ticker}}">{{this.ticker}}</a></td>
+                    <td>{{this.name}}</td>
+                    <td>{{this.sector}}</td>
+                    <td>{{this.shares}}</td>
+                    <td>£{{this.avgPrice}}</td>
+                    <td>£{{this.totalCost}}</td>
+                    <td>£{{this.currentValue}}</td>
+                    <td class="{{#if this.gainLossPositive}}price-positive{{else}}price-negative{{/if}}">
+                        £{{this.gainLoss}} ({{this.gainLossPct}}%)
+                    </td>
+                    <td>
+                        <a href="/trade/buy?ticker={{this.ticker}}" class="btn btn-deposit">Buy</a>
+                        <a href="/trade/sell?ticker={{this.ticker}}" class="btn btn-withdraw">Sell</a>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{else}}
+        <p>No holdings yet. <a href="/trade/buy">Buy your first shares</a></p>
+        {{/if}}
+    </div>
+</body>
+</html>

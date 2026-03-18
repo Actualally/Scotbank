@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * AccountService - BUSINESS LOGIC LAYER
@@ -42,6 +43,49 @@ public class AccountService {
 
     public List<Map<String, String>> getTransactionHistory(String accountId) throws SQLException {
         return accountRepository.getTransactionHistory(accountId);
+    }
+
+    public List<Map<String, Object>> getEnrichedHoldings(String accountId) throws SQLException {
+        List<Map<String, Object>> holdings = accountRepository.getHoldings(accountId);
+        ApiService apiService = new ApiService(logger);
+
+        for (Map<String, Object> holding : holdings) {
+            String ticker = (String) holding.get("ticker");
+            int shares = (int) holding.get("shares");
+            double totalCost = ((java.math.BigDecimal) holding.get("totalCost")).doubleValue();
+
+            double currentPrice = apiService.fetchLatestPrice(ticker);
+            double currentValue = shares * currentPrice;
+            double gainLoss = currentValue - totalCost;
+            double gainLossPct = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0.0;
+
+            holding.put("currentPrice", String.format("%.2f", currentPrice));
+            holding.put("currentValue", String.format("%.2f", currentValue));
+            holding.put("gainLoss", String.format("%.2f", gainLoss));
+            holding.put("gainLossPct", String.format("%.2f", gainLossPct));
+            holding.put("gainLossPositive", gainLoss >= 0);
+        }
+        return holdings;
+    }
+
+    public Map<String, String> getPortfolioSummary(List<Map<String, Object>> enrichedHoldings) {
+        double totalCurrentValue = 0.0;
+        double totalCost = 0.0;
+
+        for (Map<String, Object> h : enrichedHoldings) {
+            totalCurrentValue += Double.parseDouble((String) h.get("currentValue"));
+            totalCost += ((java.math.BigDecimal) h.get("totalCost")).doubleValue();
+        }
+
+        double totalGainLoss = totalCurrentValue - totalCost;
+        double totalGainLossPct = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0.0;
+
+        Map<String, String> summary = new HashMap<>();
+        summary.put("totalCurrentValue", String.format("%,.2f", totalCurrentValue));
+        summary.put("totalGainLoss", String.format("%,.2f", totalGainLoss));
+        summary.put("totalGainLossPct", String.format("%.2f", totalGainLossPct));
+        summary.put("totalGainLossPositive", String.valueOf(totalGainLoss >= 0));
+        return summary;
     }
 
     public void deposit(String accountId, BigDecimal amount) throws SQLException {
@@ -92,5 +136,17 @@ public class AccountService {
         } catch (NumberFormatException e) {
             throw new ArithmeticException("Invalid amount — please enter a valid number");
         }
+    }
+
+    public Map<String, Object> getInvestorDetails(String accountId) throws SQLException {
+        return accountRepository.getInvestorById(accountId);
+    }
+
+    public List<Map<String, Object>> getHoldings(String accountId) throws SQLException {
+        return accountRepository.getHoldings(accountId);
+    }
+
+    public double getTotalPortfolioValue(String accountId) throws SQLException {
+        return accountRepository.getTotalPortfolioValue(accountId);
     }
 }
