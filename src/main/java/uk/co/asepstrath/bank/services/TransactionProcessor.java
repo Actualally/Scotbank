@@ -7,52 +7,47 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 public class TransactionProcessor {
 
     private final Logger log;
+    private final ApiService apiService;
 
-    public TransactionProcessor(Logger log) {
+    public TransactionProcessor(Logger log, ApiService apiService) {
         this.log = log;
+        this.apiService = apiService;
     }
 
     public void applyTransaction(Transaction t,
-                                 PreparedStatement balanceStmt,
                                  PreparedStatement holdingGet,
                                  PreparedStatement holdingMerge) throws SQLException {
         String investorId = t.getInvestorId().toString();
         double amount = t.getTotalCashAmount();
 
         switch (t.getType()) {
-            case "DEPOSIT":
-                adjustBalance(balanceStmt, investorId, amount);
-                break;
-            case "WITHDRAW":
-                adjustBalance(balanceStmt, investorId, -amount);
-                break;
             case "BUY":
-                adjustBalance(balanceStmt, investorId, -amount);
-                updateHolding(holdingGet, holdingMerge, investorId, t.getTicker(), amount, true);
+                updateHolding(holdingGet, holdingMerge, investorId,
+                        t.getTicker(), amount, true, t.getDate());
+                log.info("Transaction Processed");
                 break;
             case "SELL":
-                adjustBalance(balanceStmt, investorId, amount);
-                updateHolding(holdingGet, holdingMerge, investorId, t.getTicker(), amount, false);
+                updateHolding(holdingGet, holdingMerge, investorId,
+                        t.getTicker(), amount, false, t.getDate());
+                log.info("Transaction Processed");
                 break;
+            case "DEPOSIT", "WITHDRAW":
             default:
-                log.warn("Unknown transaction type: {}", t.getType());
+                break;
         }
     }
 
-    private void adjustBalance(PreparedStatement stmt, String investorId, double delta)
-            throws SQLException {
-        stmt.setBigDecimal(1, BigDecimal.valueOf(delta));
-        stmt.setString(2, investorId);
-        stmt.executeUpdate();
-    }
-
     private void updateHolding(PreparedStatement getStmt, PreparedStatement mergeStmt,
-                               String investorId, String ticker, double amount, boolean isBuy)
-            throws SQLException {
+                               String investorId, String ticker, double amount,
+                               boolean isBuy, LocalDate date) throws SQLException {
+        double priceOnDate = apiService.fetchPriceOnDate(ticker, date);
+        int sharesDelta = priceOnDate > 0 ? (int) Math.round(amount / priceOnDate) : 0;
+
         getStmt.setString(1, investorId);
         getStmt.setString(2, ticker);
 
@@ -67,10 +62,13 @@ public class TransactionProcessor {
         }
 
         if (isBuy) {
-            currentShares += 1;
+            currentShares += sharesDelta;
             currentCost += amount;
         } else {
-            currentShares = Math.max(0, currentShares - 1);
+            // use avg book price to calculate shares sold, not current market price
+            double avgBookPrice = currentShares > 0 ? currentCost / currentShares : 0.0;
+            int sharesToRemove = avgBookPrice > 0 ? (int) Math.round(amount / avgBookPrice) : sharesDelta;
+            currentShares = Math.max(0, currentShares - sharesToRemove);
             currentCost = Math.max(0.0, currentCost - amount);
         }
 

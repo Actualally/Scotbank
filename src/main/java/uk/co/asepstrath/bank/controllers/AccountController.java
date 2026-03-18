@@ -35,6 +35,7 @@ public class AccountController {
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
     private static final String DB_TRANSACTIONS = "transactions";
+    private static final String STRING_FORMATTER = "%,.2f";
 
     public AccountController(AccountService accountService, Logger log) {
         this.accountService = accountService;
@@ -50,10 +51,6 @@ public class AccountController {
         return session.get(SESSION_ACCOUNT_ID).value();
     }
 
-    private boolean isTickerValid(String ticker) {
-        return Account.isValidTicker(ticker);
-    }
-
     @GET
     public ModelAndView<Map<String, Object>> viewAccount(Context ctx) {
         String accountID = getAccountID(ctx);
@@ -61,7 +58,7 @@ public class AccountController {
         try {
             Account account = accountService.getAccountDetails(accountID);
             model.put(DB_NAME, account.getName());
-            model.put(DB_BALANCE, String.format("%,.2f", account.getBalanceAsBigDecimal()));
+            model.put(DB_BALANCE, String.format(STRING_FORMATTER, account.getBalanceAsBigDecimal()));
             model.put(DB_ID, accountID);
 
             List<Map<String, String>> transactions = accountService.getTransactionHistory(accountID);
@@ -162,7 +159,46 @@ public class AccountController {
             ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
         }
     }
+    
 
+    @GET(ROUTE_PORTFOLIO)
+    public ModelAndView<Map<String, Object>> viewPortfolio(Context ctx) {
+        String accountId = getAccountID(ctx);
+        if (accountId == null) {
+            return new ModelAndView<>(TEMPLATE_PORTFOLIO, new HashMap<>());
+        }
+
+        Map<String, Object> model = new HashMap<>();
+        try {
+            Map<String, Object> investor = accountService.getInvestorDetails(accountId);
+            if (investor != null) {
+                model.put(DB_NAME, investor.get("name"));
+                model.put(DB_BALANCE, String.format(STRING_FORMATTER, investor.get(DB_BALANCE)));
+                model.put(DB_ID, accountId);
+            }
+
+            List<Map<String, Object>> holdings = accountService.getEnrichedHoldings(accountId);
+            model.put("holdings", holdings);
+            model.put("hasHoldings", !holdings.isEmpty());
+
+            Map<String, String> summary = accountService.getPortfolioSummary(holdings);
+            model.put("totalCurrentValue", summary.get("totalCurrentValue"));
+            model.put("totalGainLoss", summary.get("totalGainLoss"));
+            model.put("totalGainLossPct", summary.get("totalGainLossPct"));
+            model.put("totalGainLossPositive", Boolean.parseBoolean(summary.get("totalGainLossPositive")));
+
+            double totalInvested = accountService.getTotalPortfolioValue(accountId);
+            model.put("totalInvested", String.format(STRING_FORMATTER, totalInvested));
+
+        } catch (SQLException e) {
+            logger.error("Error loading portfolio for {}", accountId, e);
+            model.put(SESSION_ERROR_MESSAGE, "Could not load portfolio data");
+        }
+
+        transferFlashMessages(ctx, model);
+        return new ModelAndView<>(TEMPLATE_PORTFOLIO, model);
+    }
+    
     private void transferFlashMessages(Context ctx, Map<String, Object> model) {
         var session = ctx.sessionOrNull();
         if (session == null) return;
@@ -173,4 +209,6 @@ public class AccountController {
             }
         }
     }
+    
+    
 }

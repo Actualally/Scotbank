@@ -1,0 +1,65 @@
+/* Scotbank Investments — Portfolio Styles */
+/* Requires styles.css to be loaded first */
+
+/* ========== Wide Card ========== */
+.card-wide {
+    max-width: 1080px;
+}
+
+/* ========== Balance Summary Cards ========== */
+.balance-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+}
+
+.balance-card {
+    flex: 1;
+    min-width: 160px;
+    background: #f5f7fa;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+}
+
+.balance-card .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-grey-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.balance-card .value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.balance-card.cash .value { color: var(--color-primary); }
+.balance-card.gain .value { color: var(--color-success); }
+.balance-card.loss .value { color: var(--color-error); }
+
+
+/* ========== Gain/Loss Colours ========== */
+.price-positive { color: var(--color-success); font-weight: 600; }
+.price-negative { color: var(--color-error); font-weight: 600; }
+
+/* ========== Transaction Badges ========== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.badge-buy { background: var(--color-success-bg); color: var(--color-success); }
+.badge-sell { background: var(--color-error-bg); color: var(--color-error); }
+.badge-deposit { background: var(--color-success-bg); color: var(--color-success); }
+.badge-withdraw,
+.badge-withdrawal { background: #fff8ed; color: #c47600; }

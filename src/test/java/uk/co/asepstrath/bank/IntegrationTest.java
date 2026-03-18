@@ -145,4 +145,45 @@ class IntegrationTest {
             assertTrue(location.contains("/withdraw"));
         }
     }
+
+    @Test void portfolioPage_loads(int serverPort) throws IOException {
+        login(serverPort);
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/portfolio").build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(200, rsp.code());
+            ResponseBody body = rsp.body();
+            assertNotNull(body);
+            String content = body.string();
+            assertTrue(content.contains("Portfolio"));
+            assertTrue(content.contains("Demo Investor"));
+        }
+    }
+
+    @Test void portfolioPage_showsBalance(int serverPort) throws IOException {
+        login(serverPort);
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/portfolio").build();
+        try (Response rsp = client.newCall(req).execute()) {
+            assertEquals(200, rsp.code());
+            String content = rsp.body().string();
+            assertTrue(content.contains("Cash Available"));
+            assertTrue(content.contains("Total Invested"));
+        }
+    }
+
+    @Test void portfolioPage_unauthenticated_redirectsToLogin(int serverPort) throws IOException {
+        // fresh client with no session
+        OkHttpClient freshClient = new OkHttpClient.Builder()
+                .followRedirects(false)
+                .build();
+        Request req = new Request.Builder()
+                .url("http://localhost:" + serverPort + "/account/portfolio").build();
+        try (Response rsp = freshClient.newCall(req).execute()) {
+            assertEquals(302, rsp.code());
+            String location = rsp.header("Location");
+            assertNotNull(location);
+            assertTrue(location.contains("/login"));
+        }
+    }
 }

@@ -28,13 +28,14 @@ public class AppLifecycleManager {
         startH2Console();
 
         DatabaseInitialiser dbInit = new DatabaseInitialiser(ds, log);
-        dbInit.initializeSchema();
-        dbInit.seedDemoAccount();
+        dbInit.initialiseSchema();
+        dbInit.seedDemoAccount(); // seeds account only
 
 
         DataSyncService syncService = new DataSyncService(ds, log);
         syncService.syncAll();
 
+        dbInit.seedDemoHolding(); // seed holding after sync so it doesn't get nuked
         log.info("Startup complete");
     }
 

@@ -1,6 +1,6 @@
 /* Scotbank Investments — Shared Styles */
 
-/*Colour Variables*/
+/* Colour Variables */
 :root {
     --color-primary: #0066cc;
     --color-primary-hover: #0052a3;
@@ -16,6 +16,10 @@
     --color-border: #ddd;
     --color-border-light: #eee;
     --color-history-hover: #f0f7ff;
+    --color-buy: #00bb00;
+    --color-buy-hover: #00aa00;
+    --color-sell: #ee0000;
+    --color-sell-hover: #bb0000;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,7 +36,7 @@ body {
     gap: 20px;
 }
 
-/* Card container */
+/* ========== Card ========== */
 .card {
     background: white;
     border-radius: 12px;
@@ -42,15 +46,19 @@ body {
     max-width: 540px;
 }
 
-/* Typography */
+/* ========== Typography ========== */
 h1 { font-size: 1.5rem; margin-bottom: 8px; }
+h2 { font-size: 1.2rem; margin-top: 24px; margin-bottom: 12px; }
 .account-id { color: var(--color-grey-text); font-size: 0.85rem; margin-bottom: 20px; }
 .balance { font-size: 1.1rem; color: #555; margin-bottom: 24px; }
 .balance-display { font-size: 2.2rem; font-weight: 700; color: var(--color-primary); margin-bottom: 24px; }
 
-/* Form elements */
+/* ========== Forms ========== */
 label { display: block; font-weight: 600; margin-bottom: 6px; }
-input[type="number"] {
+
+input[type="number"],
+input[type="text"],
+input[type="password"] {
     width: 100%;
     padding: 12px 16px;
     font-size: 1.1rem;
@@ -58,48 +66,15 @@ input[type="number"] {
     border-radius: 8px;
     margin-bottom: 16px;
 }
-input[type="number"]:focus { outline: none; border-color: var(--color-primary); }
 
-
-/* for login*/
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 1.1rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 16px;
-}
-
+input[type="number"]:focus,
 input[type="text"]:focus,
 input[type="password"]:focus {
     outline: none;
-    border-color: #0066cc;
+    border-color: var(--color-primary);
 }
 
-
-/* for login*/
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 1.1rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 16px;
-}
-
-input[type="text"]:focus,
-input[type="password"]:focus {
-    outline: none;
-    border-color: #0066cc;
-}
-
-
-
-
-/* Buttons */
+/* ========== Buttons ========== */
 .btn {
     display: inline-block;
     padding: 12px 24px;
@@ -112,17 +87,40 @@ input[type="password"]:focus {
     text-align: center;
     white-space: nowrap;
 }
+
 .btn-primary { background: var(--color-primary); color: white; width: 100%; }
 .btn-primary:hover { background: var(--color-primary-hover); }
+
 .btn-deposit { background: var(--color-primary); color: white; flex: 1; }
 .btn-deposit:hover { background: var(--color-primary-hover); }
+
 .btn-withdraw { background: var(--color-grey-light); color: var(--color-text); flex: 1; }
 .btn-withdraw:hover { background: var(--color-grey-hover); }
+
+.btn-buy { background: var(--color-buy); color: white; flex: 1; }
+.btn-buy:hover { background: var(--color-buy-hover); }
+
+.btn-sell { background: var(--color-sell); color: white; flex: 1; }
+.btn-sell:hover { background: var(--color-sell-hover); }
+
 .btn-link { display: block; text-align: center; margin-top: 16px; color: var(--color-primary); }
+
+.btn-history {
+    background: white;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    width: 100%;
+    margin-top: 12px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: bold;
+}
+.btn-history:hover { background: var(--color-history-hover); }
+.btn-history:visited { color: var(--color-primary); }
 
 .actions { display: flex; gap: 12px; margin-bottom: 24px; }
 
-/* Flash messages */
+/* ========== Flash Messages ========== */
 .msg-success {
     background: var(--color-success-bg);
     color: var(--color-success);
@@ -131,6 +129,7 @@ input[type="password"]:focus {
     margin-bottom: 16px;
     border-left: 4px solid var(--color-success);
 }
+
 .msg-error {
     background: var(--color-error-bg);
     color: var(--color-error);
@@ -140,7 +139,55 @@ input[type="password"]:focus {
     border-left: 4px solid var(--color-error);
 }
 
-/* Transaction table */
+/* ========== Modal ========== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.modal-header h2 { margin: 0; }
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-grey-text);
+    padding: 0 4px;
+}
+.modal-close:hover { color: var(--color-text); }
+
+.modal-body {
+    padding: 16px 24px 24px;
+    overflow-y: auto;
+}
+
+/* ========== Holdings Table ========== */
 .transaction-table {
     width: 100%;
     border-collapse: collapse;
@@ -159,69 +206,9 @@ input[type="password"]:focus {
     color: var(--color-grey-text);
 }
 
-/* Transaction history button */
-.btn-history {
-    background: white;
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
-    width: 100%;
-    margin-top: 12px;
+td .btn {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    margin: 2px;
 }
-.btn-history:hover {
-    background: var(--color-history-hover);
-}
-
-/* Modal overlay */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 24px 16px;
-    border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h2 {
-    margin: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--color-grey-text);
-    padding: 0 4px;
-}
-.modal-close:hover {
-    color: var(--color-text);
-}
-
-.modal-body {
-    padding: 16px 24px 24px;
-    overflow-y: auto;
-}
-

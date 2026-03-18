@@ -22,6 +22,7 @@ import java.util.*;
 
 public class AccountRepository {
 
+    private static final String DB_BALANCE = "balance";
     private final DataSource dataSource;
 
     public AccountRepository(DataSource dataSource) {
@@ -40,7 +41,7 @@ public class AccountRepository {
                 if (!rs.next()) {
                     throw new SQLException("Account not found: " + accountId);
                 }
-                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal("Balance"));
+                return new Account(accountId, rs.getString("Name"), rs.getBigDecimal(DB_BALANCE));
             }
         }
     }
@@ -52,7 +53,7 @@ public class AccountRepository {
             stmt.setString(1, accountId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getBigDecimal("Balance");
+                    return rs.getBigDecimal(DB_BALANCE);
                 }
                 return null;
             }
@@ -103,5 +104,72 @@ public class AccountRepository {
             }
         }
         return transactions;
+    }
+
+    public Map<String, Object> getInvestorById(String accountId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT AccountID, Name, Balance FROM Accounts WHERE AccountID = ?")) {
+            stmt.setString(1, accountId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> investor = new HashMap<>();
+                    investor.put("accountId", rs.getString("AccountID"));
+                    investor.put("name", rs.getString("Name"));
+                    investor.put(DB_BALANCE, rs.getBigDecimal(DB_BALANCE));
+                    return investor;
+                }
+                return new HashMap<>();
+            }
+        }
+    }
+
+
+    public List<Map<String, Object>> getHoldings(String accountId) throws SQLException {
+        List<Map<String, Object>> holdings = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT h.Ticker, h.Shares, h.TotalCost, " +
+                             "COALESCE(e.Name, etf.Name, 'Unknown') AS Name, " +
+                             "COALESCE(e.Sector, 'ETF') AS Sector " +
+                             "FROM Holdings h " +
+                             "LEFT JOIN Equities e ON h.Ticker = e.Ticker " +
+                             "LEFT JOIN ETFs etf ON h.Ticker = etf.Ticker " +
+                             "WHERE h.InvestorID = ? AND h.Shares > 0 " +
+                             "ORDER BY h.TotalCost DESC")) {
+            stmt.setString(1, accountId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> holding = new HashMap<>();
+                    holding.put("ticker", rs.getString("Ticker"));
+                    holding.put("shares", rs.getInt("Shares"));
+                    holding.put("totalCost", rs.getBigDecimal("TotalCost"));
+                    holding.put("name", rs.getString("Name") != null ? rs.getString("Name") : "Unknown");
+                    holding.put("sector", rs.getString("Sector") != null ? rs.getString("Sector") : "Unknown");
+
+                    int shares = rs.getInt("Shares");
+                    double totalCost = rs.getDouble("TotalCost");
+                    holding.put("avgPrice", shares > 0 ? String.format("%.2f", totalCost / shares) : "0.00");
+
+                    holdings.add(holding);
+                }
+            }
+        }
+        return holdings;
+    }
+
+
+    public double getTotalPortfolioValue(String accountId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT COALESCE(SUM(TotalCost), 0) AS TotalValue FROM Holdings WHERE InvestorID = ?")) {
+            stmt.setString(1, accountId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("TotalValue");
+                }
+                return 0.0;
+            }
+        }
     }
 }
