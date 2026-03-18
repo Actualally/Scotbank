@@ -1,0 +1,42 @@
+--General Overview
+
+--Completed tasks
+-withdrawl timestamp
+-view withdrawls
+-deposit timestamp 
+-transaction type withdrawl
+-transaction type deposits
+-view deposits
+-stock ticker symbol
+-log in system
+-create account
+-forget password
+-log out
+-portfolio UI and investment evaluation
+
+
+--ACTION LIST
+
+-Ryan is going to work on implementing encryption to the passwords in the DB
+-Alexander is going to work on re-arranging final branches to ensure everything will be merged properly and ready for presentation, more tests, clearing sonarqube issues.
+-Nour is going to work on developing the issues on the issue board and user stories in preparation for presentation Q&A
+-James is going to work on the cloud proposal assignment.
+
+
+
+--What Went Well technique
+-Communication has significantly improved in comparison to the past couple check ins
+
+
+--What didn't go so well?
+-Inactive group members
+
+--How could we improve?
+-Increased meetings to push more features in preparation for presentation
+
+--Action List 
+-Nour: account page focus on UI dashboard
+-Ryan: logging in/out, encryption for password (security), forgot password 
+-Alexander:
+-James: 
+
