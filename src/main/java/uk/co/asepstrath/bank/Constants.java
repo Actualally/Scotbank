@@ -6,7 +6,9 @@ public final class Constants {
 
     public static final String ROUTE_ACCOUNT = "/account";
     public static final String ROUTE_LOGIN = "/login";
+    public static final String ROUTE_LOGOUT = "/logout";
     public static final String ROUTE_CREATEACC = "/register";
+    public static final String ROUTE_FORGOT = "/forgot";
     public static final String ROUTE_DEPOSIT = "/deposit";
     public static final String ROUTE_WITHDRAW = "/withdraw";
     public static final String ROUTE_PROCESS = "/process";
@@ -16,6 +18,7 @@ public final class Constants {
     public static final String TEMPLATE_ACCOUNT = "account.hbs";
     public static final String TEMPLATE_WITHDRAW = "withdraw.hbs";
     public static final String TEMPLATE_LOGIN = "login.hbs";
+    public static final String TEMPLATE_FORGOT = "forgot.hbs";
     public static final String TEMPLATE_CREATE = "create.hbs";
 
     public static final String SESSION_ACCOUNT_ID = "accountid";

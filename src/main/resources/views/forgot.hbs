@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Scotbank Investments</h1>
+        <p class="balance">Reset your password</p>
+
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+        {{#if success}}
+            <div class="msg-success">{{success}}</div>
+        {{/if}}
+
+        <form action="/login/forgot" method="post" id="forgotForm">
+            <label for="accountid">Account UUID</label>
+            <input type="text" id="accountid" name="accountid"
+                   placeholder="e.g. 00000000-0000-000d-6275-deb4e6feed17" required>
+
+            <label for="password">New Password</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter new password" required>
+
+            <label for="confirmpassword">Confirm Password</label>
+            <input type="password" id="confirmpassword" name="confirmpassword"
+                   placeholder="Confirm new password" required>
+
+            <button type="submit" class="btn btn-primary" id="forgotBtn">Reset Password</button>
+        </form>
+        <a href="/login" class="btn-link">← Back to Login</a>
+    </div>
+    <script>
+        document.getElementById('forgotForm').addEventListener('submit', function() {
+            document.getElementById('forgotBtn').disabled = true;
+            document.getElementById('forgotBtn').textContent = 'Resetting...';
+        });
+        window.addEventListener('pageshow', function() {
+            var btn = document.getElementById('forgotBtn');
+            btn.disabled = false;
+            btn.textContent = 'Reset Password';
+        });
+    </script>
+</body>
+</html>

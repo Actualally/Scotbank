@@ -39,6 +39,7 @@ public class App extends Jooby {
 
         mvc(new AccountController_(accountService, log));
         mvc(new LoginController_(ds, log));
+        mvc(new LogoutController_());
 
         lifecycleManager = new AppLifecycleManager(ds, log);
         onStarted(lifecycleManager::onStart);

@@ -61,6 +61,12 @@ public class LoginController {
 		return new ModelAndView<>(TEMPLATE_CREATE, model);
 
 	}
+	@GET(ROUTE_FORGOT)
+	public ModelAndView<Map<String, Object>> showForgotPage(Context ctx) {
+    	Map<String, Object> model = new HashMap<>();
+    	transferFlashMessages(ctx, model);
+    	return new ModelAndView<>(TEMPLATE_FORGOT, model);
+	}
 
 	@POST
 	public void Login(Context ctx){
@@ -144,7 +150,50 @@ public class LoginController {
 			ctx.sendRedirect(ROUTE_LOGIN + ROUTE_CREATEACC);
 		}
 	}
+	@POST(ROUTE_FORGOT)
+	public void processForgot(Context ctx) {
+		String accountID = ctx.form("accountid").valueOrNull();
+		String newPassword = ctx.form("password").valueOrNull();
+		String confirmPassword = ctx.form("confirmpassword").valueOrNull();
 
+		if (accountID == null || accountID.isBlank()
+				|| newPassword == null || newPassword.isBlank()
+				|| confirmPassword == null || confirmPassword.isBlank()) {
+			ctx.session().put(SESSION_ERROR_MESSAGE, "Please fill in all fields");
+			ctx.sendRedirect(ROUTE_LOGIN + ROUTE_FORGOT);
+			return;
+		}
+
+		if (!newPassword.equals(confirmPassword)) {
+			ctx.session().put(SESSION_ERROR_MESSAGE, "Passwords do not match");
+			ctx.sendRedirect(ROUTE_LOGIN + ROUTE_FORGOT);
+			return;
+		}
+
+		try (Connection conn = dataSource.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(
+					"UPDATE Accounts SET Password = ? WHERE AccountID = ?")) {
+
+			stmt.setString(1, newPassword);
+			stmt.setString(2, accountID.trim());
+			int rows = stmt.executeUpdate();
+
+			if (rows == 0) {
+				//UUID didn't match anything
+				ctx.session().put(SESSION_ERROR_MESSAGE, "No account found with that ID");
+				ctx.sendRedirect(ROUTE_LOGIN + ROUTE_FORGOT);
+			} else {
+				logger.info("Password reset for account: {}", accountID);
+				ctx.session().put(SESSION_SUCCESS_MESSAGE, "Password updated! Please log in.");
+				ctx.sendRedirect(ROUTE_LOGIN);
+			}
+
+		} catch (SQLException e) {
+			logger.error("Error resetting password", e);
+			ctx.session().put(SESSION_ERROR_MESSAGE, "A system error occurred. Please try again.");
+			ctx.sendRedirect(ROUTE_LOGIN + ROUTE_FORGOT);
+		}
+	}
 
 	private void transferFlashMessages(Context ctx, Map<String, Object> model) {
         var session = ctx.sessionOrNull();

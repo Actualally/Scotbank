@@ -29,12 +29,16 @@
                 placeholder="Enter your password" required>
 
             <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+            <a href="/login/register" class="btn-link">Create an account!</a>
+            <a href="/login/forgot" class="btn-link">Forgot your password?</a>
+
         </form>
     </div>
     <script>
         document.getElementById('login').addEventListener('submit', function() {
             document.getElementById('loginBtn').disabled = true;
             document.getElementById('loginBtn').textContent = 'Signing in...';
+            
         });
 
         window.addEventListener('showPage', function() {
