@@ -33,10 +33,3 @@
 
 --How could we improve?
 -Increased meetings to push more features in preparation for presentation
-
---Action List 
--Nour: account page focus on UI dashboard
--Ryan: logging in/out, encryption for password (security), forgot password 
--Alexander:
--James: 
-
