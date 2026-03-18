@@ -3,17 +3,20 @@ package uk.co.asepstrath.bank;
 import org.h2.tools.Server;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.services.DataSyncService;
-import uk.co.asepstrath.bank.DatabaseInitialiser;
 
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
+
+import java.nio.file.Path;
+import java.sql.*;
 
 public class AppLifecycleManager {
 
     private final DataSource ds;
     private final Logger log;
     private Server h2Server;
+
+    private static final Path ACCOUNTS_CSV = Path.of("data/accounts.csv");
 
     public AppLifecycleManager(DataSource ds, Logger log) {
         this.ds = ds;
@@ -28,6 +31,7 @@ public class AppLifecycleManager {
         dbInit.initializeSchema();
         dbInit.seedDemoAccount();
 
+
         DataSyncService syncService = new DataSyncService(ds, log);
         syncService.syncAll();
 
@@ -41,6 +45,7 @@ public class AppLifecycleManager {
             log.info("H2 Console stopped");
         }
     }
+
 
     private void startH2Console() {
         try {

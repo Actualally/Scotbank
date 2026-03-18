@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
+    <div style="position: relative;">
+            <a href="/logout" class="btn btn-withdraw" style="position: absolute; top: -20px; right: -450px;">Log Out</a>
+    </div>
     <div class="card">
         <h1>Welcome, {{name}}</h1>
         <p class="account-id">Account: {{accountId}}</p>
@@ -18,7 +21,6 @@
         {{#if error}}
             <div class="msg-error">{{error}}</div>
         {{/if}}
-
         <div class="actions">
             <a href="/account/deposit" class="btn btn-deposit">Deposit</a>
             <a href="/account/withdraw" class="btn btn-withdraw">Withdraw</a>
