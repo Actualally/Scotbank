@@ -6,8 +6,6 @@ import uk.co.asepstrath.bank.services.DataSyncService;
 
 
 import javax.sql.DataSource;
-
-import java.nio.file.Path;
 import java.sql.*;
 
 public class AppLifecycleManager {
@@ -16,7 +14,6 @@ public class AppLifecycleManager {
     private final Logger log;
     private Server h2Server;
 
-    private static final Path ACCOUNTS_CSV = Path.of("data/accounts.csv");
 
     public AppLifecycleManager(DataSource ds, Logger log) {
         this.ds = ds;

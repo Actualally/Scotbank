@@ -18,6 +18,7 @@ import static uk.co.asepstrath.bank.Constants.*;
 @Path(ROUTE_LOGIN)
 public class LoginController {
 
+	private static final String FIELD_PASSWORD = "password";
 	private final DataSource dataSource;
   	private final Logger logger;
 
@@ -71,7 +72,7 @@ public class LoginController {
 	@POST
 	public void login(Context ctx){
 		String accountID = ctx.form("accountid").valueOrNull();
-		String password = ctx.form("password").valueOrNull();
+		String password = ctx.form(FIELD_PASSWORD).valueOrNull();
 
 		if (accountID == null || password == null) {
 			ctx.session().put(SESSION_ERROR_MESSAGE, "Please enter account ID and password");
@@ -120,7 +121,7 @@ public class LoginController {
 	@POST(ROUTE_CREATEACC)
 	public void processCreateAcc(Context ctx){
 		String name = ctx.form("name").valueOrNull();
-		String password = ctx.form("password").valueOrNull();
+		String password = ctx.form(FIELD_PASSWORD).valueOrNull();
 
 		if(name == null || password == null){
 			ctx.session().put(SESSION_ERROR_MESSAGE, "Please enter name and password");
@@ -153,7 +154,7 @@ public class LoginController {
 	@POST(ROUTE_FORGOT)
 	public void processForgot(Context ctx) {
 		String accountID = ctx.form("accountid").valueOrNull();
-		String newPassword = ctx.form("password").valueOrNull();
+		String newPassword = ctx.form(FIELD_PASSWORD).valueOrNull();
 		String confirmPassword = ctx.form("confirmpassword").valueOrNull();
 
 		if (accountID == null || accountID.isBlank()
