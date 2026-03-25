@@ -135,7 +135,7 @@ class IntegrationTest {
 
     @Test void withdraw_more_than_balance_redirectsToWithdraw(int serverPort) throws IOException {
         login(serverPort);
-        RequestBody form = new FormBody.Builder().add("withdrawamount", "100000.00").build();
+        RequestBody form = new FormBody.Builder().add("withdrawamount", "100000000.00").build();
         Request req = new Request.Builder()
                 .url("http://localhost:" + serverPort + "/account/withdraw/process").post(form).build();
         try (Response rsp = client.newCall(req).execute()) {

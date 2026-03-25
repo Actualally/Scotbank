@@ -24,10 +24,12 @@ import java.util.HashMap;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final ApiService apiService;
     private final Logger logger;
 
-    public AccountService(AccountRepository accountRepository, Logger logger) {
+    public AccountService(AccountRepository accountRepository, ApiService apiService, Logger logger) {
         this.accountRepository = accountRepository;
+        this.apiService = apiService;
         this.logger = logger;
     }
 
@@ -47,7 +49,6 @@ public class AccountService {
 
     public List<Map<String, Object>> getEnrichedHoldings(String accountId) throws SQLException {
         List<Map<String, Object>> holdings = accountRepository.getHoldings(accountId);
-        ApiService apiService = new ApiService(logger);
 
         for (Map<String, Object> holding : holdings) {
             String ticker = (String) holding.get("ticker");
@@ -55,6 +56,7 @@ public class AccountService {
             double totalCost = ((java.math.BigDecimal) holding.get("totalCost")).doubleValue();
 
             double currentPrice = apiService.fetchLatestPrice(ticker);
+            logger.info("Latest price for {}: {}", ticker, currentPrice);
             double currentValue = shares * currentPrice;
             double gainLoss = currentValue - totalCost;
             double gainLossPct = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0.0;

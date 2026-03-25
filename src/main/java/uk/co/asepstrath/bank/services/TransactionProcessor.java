@@ -1,6 +1,6 @@
 package uk.co.asepstrath.bank.services;
 
-import org.slf4j.Logger;
+
 import uk.co.asepstrath.bank.models.Transaction;
 
 import java.math.BigDecimal;
@@ -11,11 +11,9 @@ import java.time.LocalDate;
 
 public class TransactionProcessor {
 
-    private final Logger log;
     private final ApiService apiService;
 
-    public TransactionProcessor(Logger log, ApiService apiService) {
-        this.log = log;
+    public TransactionProcessor(ApiService apiService) {
         this.apiService = apiService;
     }
 
@@ -29,12 +27,10 @@ public class TransactionProcessor {
             case "BUY":
                 updateHolding(holdingGet, holdingMerge, investorId,
                         t.getTicker(), amount, true, t.getDate());
-                log.info("Transaction Processed");
                 break;
             case "SELL":
                 updateHolding(holdingGet, holdingMerge, investorId,
                         t.getTicker(), amount, false, t.getDate());
-                log.info("Transaction Processed");
                 break;
             case "DEPOSIT", "WITHDRAW":
             default:

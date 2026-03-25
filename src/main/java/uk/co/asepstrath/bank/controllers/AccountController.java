@@ -7,10 +7,12 @@ import io.jooby.annotation.POST;
 import io.jooby.annotation.Path;
 import org.slf4j.Logger;
 import uk.co.asepstrath.bank.Account;
-import uk.co.asepstrath.bank.services.AccountService;
+import uk.co.asepstrath.bank.services.*;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,15 +32,22 @@ import static uk.co.asepstrath.bank.Constants.*;
 public class AccountController {
 
     private final AccountService accountService;
+    private final CategorisationService categorisationService;
     private final Logger logger;
     private static final String DB_NAME = "name";
     private static final String DB_BALANCE = "balance";
     private static final String DB_ID = "accountId";
     private static final String DB_TRANSACTIONS = "transactions";
     private static final String STRING_FORMATTER = "%,.2f";
+    private final CapitalGainsService capitalGainsService;
 
-    public AccountController(AccountService accountService, Logger log) {
+    public AccountController(AccountService accountService,
+                             CategorisationService categorisationService,
+                             CapitalGainsService capitalGainsService,
+                             Logger log) {
         this.accountService = accountService;
+        this.categorisationService = categorisationService;
+        this.capitalGainsService = capitalGainsService;
         this.logger = log;
     }
 
@@ -57,6 +66,8 @@ public class AccountController {
         Map<String, Object> model = new HashMap<>();
         try {
             Account account = accountService.getAccountDetails(accountID);
+            boolean kycCompleted = ctx.session().get("kyc_completed").isPresent();
+            model.put("kycRequired", !kycCompleted);
             model.put(DB_NAME, account.getName());
             model.put(DB_BALANCE, String.format(STRING_FORMATTER, account.getBalanceAsBigDecimal()));
             model.put(DB_ID, accountID);
@@ -159,7 +170,7 @@ public class AccountController {
             ctx.sendRedirect(ROUTE_ACCOUNT + ROUTE_WITHDRAW);
         }
     }
-    
+
 
     @GET(ROUTE_PORTFOLIO)
     public ModelAndView<Map<String, Object>> viewPortfolio(Context ctx) {
@@ -181,6 +192,35 @@ public class AccountController {
             model.put("holdings", holdings);
             model.put("hasHoldings", !holdings.isEmpty());
 
+            String yearParam = ctx.query("year").valueOrNull();
+            int selectedYear = parseYear(yearParam, LocalDate.now().getYear());
+
+            Map<String, Object> gains = capitalGainsService.calculateCapitalGains(accountId, selectedYear);
+            List<Integer> availableYears = capitalGainsService.getAvailableYears(accountId);
+            List<Map<String, Object>> yearOptions = new ArrayList<>();
+            for (int y : availableYears) {
+                Map<String, Object> opt = new HashMap<>();
+                opt.put("year", y);
+                opt.put("selected", y == selectedYear);
+                yearOptions.add(opt);
+            }
+            model.put("yearOptions", yearOptions);
+            model.put("gains", gains);
+            model.put("availableYears", availableYears);
+            model.put("selectedYear", selectedYear);
+
+            Map<String, Object> categorisation = categorisationService.getCategorisation(holdings);
+            model.put("sectors", categorisation.get("sectors"));
+            model.put("countries", categorisation.get("countries"));
+            model.put("regions", categorisation.get("regions"));
+            model.put("sectorChartLabels", categorisation.get("sectorChartLabels"));
+            model.put("sectorChartValues", categorisation.get("sectorChartValues"));
+            model.put("countryChartLabels", categorisation.get("countryChartLabels"));
+            model.put("countryChartValues", categorisation.get("countryChartValues"));
+            model.put("regionChartLabels", categorisation.get("regionChartLabels"));
+            model.put("regionChartValues", categorisation.get("regionChartValues"));
+            model.put("totalValue", categorisation.get("totalValue"));
+
             Map<String, String> summary = accountService.getPortfolioSummary(holdings);
             model.put("totalCurrentValue", summary.get("totalCurrentValue"));
             model.put("totalGainLoss", summary.get("totalGainLoss"));
@@ -198,7 +238,7 @@ public class AccountController {
         transferFlashMessages(ctx, model);
         return new ModelAndView<>(TEMPLATE_PORTFOLIO, model);
     }
-    
+
     private void transferFlashMessages(Context ctx, Map<String, Object> model) {
         var session = ctx.sessionOrNull();
         if (session == null) return;
@@ -209,6 +249,13 @@ public class AccountController {
             }
         }
     }
-    
-    
+
+    private int parseYear(String yearParam, int defaultYear) {
+        try {
+            return Integer.parseInt(yearParam);
+        } catch (NumberFormatException ignored) {
+            // Invalid year parameter — keep default current year
+            return defaultYear;
+        }
+    }
 }

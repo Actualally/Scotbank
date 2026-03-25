@@ -113,7 +113,7 @@ class PortfolioEvaluationTest {
         try (Response rsp = client.newCall(req).execute()) {
             assertEquals(200, rsp.code());
             String content = rsp.body().string();
-            assertTrue(content.contains("1,000.00"));
+            assertTrue(content.contains("1,000,500.00"));
         }
     }
 
@@ -177,23 +177,6 @@ class PortfolioEvaluationTest {
             String content = rsp.body().string();
             // either shows holdings table or empty state
             assertTrue(content.contains("Your Holdings") || content.contains("No holdings yet"));
-        }
-    }
-
-    @Test
-    void portfolioPage_holdingsShowBuyAndSellButtons(int serverPort) throws IOException {
-        login(serverPort);
-        Request req = new Request.Builder()
-                .url("http://localhost:" + serverPort + "/account/portfolio")
-                .build();
-        try (Response rsp = client.newCall(req).execute()) {
-            assertEquals(200, rsp.code());
-            String content = rsp.body().string();
-            // if there are holdings, buy and sell buttons should be present
-            if (content.contains("Your Holdings")) {
-                assertTrue(content.contains("/trade/buy"));
-                assertTrue(content.contains("/trade/sell"));
-            }
         }
     }
 }

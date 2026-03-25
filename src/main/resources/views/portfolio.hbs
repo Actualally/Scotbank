@@ -6,9 +6,16 @@
     <title>Portfolio — Scotbank Investments</title>
     <link rel="stylesheet" href="/assets/styles.css">
     <link rel="stylesheet" href="/assets/portfolio.css">
+    <link rel="icon" type="image/png" href="/assets/Scot_Favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="card card-wide">
+        <div style="position: relative;">
+            <img src="/assets/Scotbank_Logo.png"
+                 alt="Scotbank Investments"
+                 style="position: absolute; top: -20px; right: -20px; height: 180px; width: auto;">
+        </div>
         <h1>Portfolio</h1>
         <p class="account-id">{{name}} — {{accountId}}</p>
 
@@ -18,6 +25,8 @@
         {{#if error}}
             <div class="msg-error">{{error}}</div>
         {{/if}}
+
+        <a href="/account" class="btn btn-withdraw" style="display: inline-block; margin-bottom: 16px;">Account</a>
 
         <div class="balance-row">
             <div class="balance-card cash">
@@ -38,17 +47,76 @@
             </div>
         </div>
 
-        <div class="actions">
-            <a href="/trade/buy" class="btn btn-buy">Buy Shares</a>
-            <a href="/trade/sell" class="btn btn-sell">Sell Shares</a>
-        </div>
-
-        <div class="actions">
-            <a href="/account" class="btn btn-withdraw">Account</a>
-            <a href="/market/equities" class="btn btn-withdraw">Browse Market</a>
-        </div>
-
         {{#if hasHoldings}}
+        <div class="categorization-container">
+            <h2>Portfolio Exposure</h2>
+
+            <div class="cat-tabs">
+                <button class="cat-tab active" onclick="switchTab('sector')">Sector</button>
+                <button class="cat-tab" onclick="switchTab('country')">Country</button>
+                <button class="cat-tab" onclick="switchTab('region')">Region</button>
+            </div>
+
+            <div style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; margin-top: 20px;">
+                <div id="chartContainer" style="flex: 1; min-width: 320px; max-width: 420px;">
+                    <canvas id="activeChart"></canvas>
+                </div>
+                <div style="flex: 2; min-width: 260px;">
+                    <div id="sectorTable" class="cat-table">
+                        <div class="cat-scroll">
+                            <table class="transaction-table">
+                                <thead><tr><th></th><th>Sector</th><th>Value</th><th>%</th></tr></thead>
+                                <tbody>
+                                    {{#each sectors}}
+                                    <tr>
+                                        <td><span class="cat-swatch" data-color="{{this.color}}"></span></td>
+                                        <td>{{this.name}}</td>
+                                        <td>£{{this.value}}</td>
+                                        <td>{{this.percentage}}%</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="countryTable" class="cat-table" style="display:none">
+                        <div class="cat-scroll">
+                            <table class="transaction-table">
+                                <thead><tr><th></th><th>Country</th><th>Value</th><th>%</th></tr></thead>
+                                <tbody>
+                                    {{#each countries}}
+                                    <tr>
+                                        <td><span class="cat-swatch" data-color="{{this.color}}"></span></td>
+                                        <td>{{this.name}}</td>
+                                        <td>£{{this.value}}</td>
+                                        <td>{{this.percentage}}%</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="regionTable" class="cat-table" style="display:none">
+                        <div class="cat-scroll">
+                            <table class="transaction-table">
+                                <thead><tr><th></th><th>Region</th><th>Value</th><th>%</th></tr></thead>
+                                <tbody>
+                                    {{#each regions}}
+                                    <tr>
+                                        <td><span class="cat-swatch" data-color="{{this.color}}"></span></td>
+                                        <td>{{this.name}}</td>
+                                        <td>£{{this.value}}</td>
+                                        <td>{{this.percentage}}%</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <h2>Your Holdings</h2>
         <table class="transaction-table">
             <thead>
@@ -61,7 +129,6 @@
                     <th>Invested</th>
                     <th>Current Value</th>
                     <th>Gain/Loss</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -77,17 +144,191 @@
                     <td class="{{#if this.gainLossPositive}}price-positive{{else}}price-negative{{/if}}">
                         £{{this.gainLoss}} ({{this.gainLossPct}}%)
                     </td>
-                    <td>
-                        <a href="/trade/buy?ticker={{this.ticker}}" class="btn btn-deposit">Buy</a>
-                        <a href="/trade/sell?ticker={{this.ticker}}" class="btn btn-withdraw">Sell</a>
-                    </td>
                 </tr>
                 {{/each}}
             </tbody>
         </table>
         {{else}}
-        <p>No holdings yet. <a href="/trade/buy">Buy your first shares</a></p>
+        <p>No holdings yet.</p>
+        {{/if}}
+
+        <h2 id="capital-gains">Capital Gains — {{selectedYear}}</h2>
+
+        <div style="margin-bottom: 16px;">
+            <form method="get" action="/account/portfolio#capital-gains" style="display:inline;">
+                <select name="year" onchange="this.form.submit()">
+                    {{#each yearOptions}}
+                    <option value="{{this.year}}" {{#if this.selected}}selected{{/if}}>{{this.year}}</option>
+                    {{/each}}
+                </select>
+            </form>
+        </div>
+
+        {{#if gains.hasSales}}
+        <table class="transaction-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Ticker</th>
+                    <th>Proceeds</th>
+                    <th>Cost Basis</th>
+                    <th>Gain/Loss</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each gains.salesDetail}}
+                <tr>
+                    <td>{{this.date}}</td>
+                    <td>{{this.ticker}}</td>
+                    <td>£{{this.proceeds}}</td>
+                    <td>£{{this.costBasis}}</td>
+                    <td class="{{#if this.gainPositive}}price-positive{{else}}price-negative{{/if}}">
+                        £{{this.gain}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div class="tax-summary-widget">
+            <div class="tax-row">
+                <span>Total Gains</span>
+                <span class="text-gain">£{{gains.totalGains}}</span>
+            </div>
+            <div class="tax-row">
+                <span>Total Losses</span>
+                <span class="text-loss">£{{gains.totalLosses}}</span>
+            </div>
+            <div class="tax-row">
+                <span>Net Capital Gains</span>
+                <span class="{{#if gains.netGainsPositive}}text-gain{{else}}text-loss{{/if}}">£{{gains.netGains}}</span>
+            </div>
+            <div class="tax-row">
+                <span>Capital Gains Allowance</span>
+                <span>£3,000.00</span>
+            </div>
+            <div class="tax-row">
+                <span>Taxable Gains</span>
+                <span>£{{gains.taxableGains}}</span>
+            </div>
+            <div class="tax-row">
+                <span>Tax Rate</span>
+                <span>24%</span>
+            </div>
+            <div class="tax-row">
+                <span><strong>Estimated Tax Owed</strong></span>
+                <span><strong>£{{gains.estimatedTax}}</strong></span>
+            </div>
+            <div class="allowance-container">
+                <small>Allowance Used: £{{gains.allowanceUsed}} of £3,000.00 (£{{gains.allowanceRemaining}} remaining)</small>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{gains.allowanceProgressPct}}%"></div>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <p>No sales recorded for {{selectedYear}}.</p>
         {{/if}}
     </div>
+
+    <script>
+        const COLORS = [
+            '#0066cc', '#006600', '#cc0000', '#7c3aed',
+            '#c47600', '#0891b2', '#be185d', '#15803d',
+            '#b45309', '#1d4ed8'
+        ];
+
+        const data = {
+            sector:  { labels: {{{sectorChartLabels}}},  values: {{{sectorChartValues}}}  },
+            country: { labels: {{{countryChartLabels}}}, values: {{{countryChartValues}}} },
+            region:  { labels: {{{regionChartLabels}}},  values: {{{regionChartValues}}}  }
+        };
+
+        let activeChart = null;
+
+        function applySwatchColors(tab, otherColorIdx) {
+            const table = document.getElementById(tab + 'Table');
+            if (!table) return;
+            const swatches = table.querySelectorAll('.cat-swatch');
+            swatches.forEach(swatch => {
+                const colorVal = swatch.getAttribute('data-color');
+                if (colorVal === 'other') {
+                    swatch.style.background = COLORS[otherColorIdx] || '#cccccc';
+                } else {
+                    const idx = parseInt(colorVal);
+                    swatch.style.background = COLORS[idx] || '#cccccc';
+                }
+            });
+        }
+
+        function groupSmallSegments(labels, values) {
+            const total = values.reduce((a, b) => a + b, 0);
+            const mainLabels = [], mainValues = [];
+            let other = 0;
+
+            for (let i = 0; i < labels.length; i++) {
+                if ((values[i] / total) * 100 < 2) {
+                    other += values[i];
+                } else {
+                    mainLabels.push(labels[i]);
+                    mainValues.push(values[i]);
+                }
+            }
+            const otherColorIdx = mainLabels.length;
+            if (other > 0) {
+                mainLabels.push('Other');
+                mainValues.push(other);
+            }
+            return { labels: mainLabels, values: mainValues, otherColorIdx };
+        }
+
+        function buildChart(tab) {
+            const raw = data[tab];
+            const { labels, values, otherColorIdx } = groupSmallSegments(raw.labels, raw.values);
+
+            if (activeChart) activeChart.destroy();
+
+            activeChart = new Chart(document.getElementById('activeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: COLORS,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    animation: { duration: 700, easing: 'easeInOutQuart' },
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const t = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((ctx.parsed / t) * 100).toFixed(1);
+                                    return ` £${ctx.parsed.toLocaleString()} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            applySwatchColors(tab, otherColorIdx);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.cat-table').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab + 'Table').style.display = 'block';
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            buildChart(tab);
+        }
+
+        // Load sector chart on page load
+        buildChart('sector');
+    </script>
 </body>
 </html>

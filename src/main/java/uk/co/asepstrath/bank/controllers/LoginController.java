@@ -18,7 +18,7 @@ import static uk.co.asepstrath.bank.Constants.*;
 @Path(ROUTE_LOGIN)
 public class LoginController {
 
-	private static final String FIELD_PASSWORD = "password";
+    private static final String FIELD_PASSWORD = "password";
 	private final DataSource dataSource;
   	private final Logger logger;
 

@@ -35,11 +35,16 @@ public class App extends Jooby {
         Logger log = getLog();
 
         AccountRepository accountRepository = new AccountRepository(ds);
-        AccountService accountService = new AccountService(accountRepository, log);
+        ApiService apiService = new ApiService(log);
+        AccountService accountService = new AccountService(accountRepository, apiService, log);
+        KYCService kycService = new KYCService(log);
+        CategorisationService categorisationService = new CategorisationService(accountRepository, apiService, log);
+        CapitalGainsService capitalGainsService = new CapitalGainsService(accountRepository, log);
 
-        mvc(new AccountController_(accountService, log));
+        mvc(new AccountController_(accountService, categorisationService, capitalGainsService, log));
         mvc(new LoginController_(ds, log));
         mvc(new LogoutController_());
+        mvc(new KYCController_(kycService, log));
 
         lifecycleManager = new AppLifecycleManager(ds, log);
         onStarted(lifecycleManager::onStart);

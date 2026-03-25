@@ -3,16 +3,14 @@ package uk.co.asepstrath.bank.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-import uk.co.asepstrath.bank.repositories.AccountRepository;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.slf4j.LoggerFactory;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+
 
 class AccountServiceTest {
 
@@ -20,9 +18,8 @@ class AccountServiceTest {
 
     @BeforeEach
     void setup() {
-        AccountRepository mockRepo = mock(AccountRepository.class);
-        Logger mockLogger = mock(Logger.class);
-        accountService = new AccountService(mockRepo, mockLogger);
+        Logger logger = LoggerFactory.getLogger("test");
+        accountService = new AccountService(null, null, logger);
     }
 
     // ── parseAndValidateAmount ──────────────────────────────────────────────

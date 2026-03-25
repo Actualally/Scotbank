@@ -19,7 +19,7 @@ public class DataSyncService {
         this.ds = ds;
         this.log = log;
         this.apiService = new ApiService(log);
-        this.transactionProcessor = new TransactionProcessor(log, apiService);
+        this.transactionProcessor = new TransactionProcessor(apiService);
     }
 
     public void syncAll() {
@@ -101,28 +101,42 @@ public class DataSyncService {
         List<Transaction> transactions = apiService.fetchAllTransactions();
         transactions.sort((a, b) -> a.getDate().compareTo(b.getDate()));
 
+        prewarmPriceCache(transactions);
+
         try (PreparedStatement txStmt = conn.prepareStatement(
-                "MERGE INTO Transactions (TransactionID, InvestorID, TransactionType, Ticker, TotalCashAmount, TransactionDate) " +
-                        "VALUES (?, ?, ?, ?, ?, ?)");
-             PreparedStatement balanceStmt = conn.prepareStatement(
-                     "UPDATE Accounts SET Balance = Balance + ? WHERE AccountID = ?");
+                "MERGE INTO Transactions (TransactionID, InvestorID, TransactionType, Ticker, " +
+                        "TotalCashAmount, Shares, PricePerShare, TransactionDate) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
              PreparedStatement holdingMerge = conn.prepareStatement(
-                     "MERGE INTO Holdings (InvestorID, Ticker, Shares, TotalCost) KEY (InvestorID, Ticker) VALUES (?, ?, ?, ?)");
+                     "MERGE INTO Holdings (InvestorID, Ticker, Shares, TotalCost) " +
+                             "KEY (InvestorID, Ticker) VALUES (?, ?, ?, ?)");
              PreparedStatement holdingGet = conn.prepareStatement(
                      "SELECT Shares, TotalCost FROM Holdings WHERE InvestorID = ? AND Ticker = ?")) {
 
-            prewarmPriceCache(transactions);
             for (Transaction t : transactions) {
+                double[] sharesAndPrice = calculateSharesAndPrice(t);
+                int shares = (int) sharesAndPrice[0];
+                double pricePerShare = sharesAndPrice[1];
+
+                if (t.getTicker() != null && (t.getType().equals("BUY") || t.getType().equals("SELL"))) {
+                    double price = apiService.fetchPriceOnDate(t.getTicker(), t.getDate());
+                    if (price > 0) {
+                        shares = (int) Math.round(t.getTotalCashAmount() / price);
+                        pricePerShare = price;
+                    }
+                }
+
                 txStmt.setString(1, t.getId().toString());
                 txStmt.setString(2, t.getInvestorId().toString());
                 txStmt.setString(3, t.getType());
                 txStmt.setString(4, t.getTicker());
                 txStmt.setBigDecimal(5, BigDecimal.valueOf(t.getTotalCashAmount()));
-                txStmt.setDate(6, Date.valueOf(t.getDate()));
+                txStmt.setInt(6, shares);
+                txStmt.setBigDecimal(7, BigDecimal.valueOf(pricePerShare));
+                txStmt.setDate(8, Date.valueOf(t.getDate()));
                 txStmt.addBatch();
 
-                transactionProcessor.applyTransaction(
-                        t, holdingGet, holdingMerge);
+                transactionProcessor.applyTransaction(t, holdingGet, holdingMerge);
             }
             txStmt.executeBatch();
         }
@@ -136,5 +150,17 @@ public class DataSyncService {
                 .distinct()
                 .forEach(apiService::fetchPrices);
         log.info("Price cache pre-warmed");
+    }
+
+    private double[] calculateSharesAndPrice(Transaction t) {
+        if (t.getTicker() == null ||
+                (!t.getType().equals("BUY") && !t.getType().equals("SELL"))) {
+            return new double[]{0, 0};
+        }
+        double price = apiService.fetchPriceOnDate(t.getTicker(), t.getDate());
+        if (price > 0) {
+            return new double[]{Math.round(t.getTotalCashAmount() / price), price};
+        }
+        return new double[]{0, 0};
     }
 }
