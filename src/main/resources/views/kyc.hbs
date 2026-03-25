@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Compliance — Scotbank Investments</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="icon" type="image/png" href="/assets/Scot_Favicon.png">
+</head>
+<body>
+    <div class="card">
+        <div style="position: relative;">
+            <img src="/assets/Scotbank_Logo.png"
+                 alt="Scotbank Investments"
+                 style="position: absolute; top: -30px; right: -20px; height: 120px; width: auto;">
+        </div>
+        <h1>KYC Compliance</h1>
+        <p class="account-id">Mandatory Regulatory Check</p>
+        <p>Please complete the following questions as directed by your wealth manager.</p>
+        <br>
+
+        {{#if success}}
+            <div class="msg-success">{{success}}</div>
+        {{/if}}
+        {{#if error}}
+            <div class="msg-error">{{error}}</div>
+        {{/if}}
+
+        {{#if questions}}
+        <form action="/kyc/submit" method="POST">
+            <input type="hidden" name="challengeToken" value="{{challengeToken}}">
+
+            {{#each questions}}
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label>{{this.questionText}}</label>
+
+                {{#if this.isEnum}}
+                <select name="{{this.id}}">
+                    <option value="">Select an option</option>
+                    {{#each this.validOptions}}
+                    <option value="{{this}}">{{this}}</option>
+                    {{/each}}
+                </select>
+
+                {{else}}{{#if this.isDate}}
+                <input type="date"
+                       name="{{this.id}}"
+                       min="{{this.minDate}}"
+                       max="{{this.maxDate}}">
+
+                {{else}}{{#if this.isNumber}}
+                <input type="number"
+                       name="{{this.id}}"
+                       min="{{this.min}}"
+                       max="{{this.max}}">
+
+                {{else}}{{#if this.isBoolean}}
+                <select name="{{this.id}}">
+                    <option value="">Select an option</option>
+                    {{#each this.boolOptions}}
+                    <option value="{{this.value}}">{{this.label}}</option>
+                    {{/each}}
+                </select>
+
+                {{else}}
+                <input type="text"
+                       name="{{this.id}}"
+                       {{#if this.pattern}}pattern="{{this.pattern}}"{{/if}}
+                       placeholder="{{this.placeholder}}">
+                {{/if}}{{/if}}{{/if}}{{/if}}
+                </div>
+                {{/each}}
+
+            <button type="submit" class="btn btn-primary">Submit Compliance Check</button>
+            <a href="/account" class="btn-link">Cancel and Return</a>
+        </form>
+        {{else}}
+        <div class="msg-error">Could not load questionnaire. Please try again.</div>
+        <a href="/account" class="btn-link">Return to Account</a>
+        {{/if}}
+    </div>
+</body>
+</html>

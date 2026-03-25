@@ -16,10 +16,6 @@
     --color-border: #ddd;
     --color-border-light: #eee;
     --color-history-hover: #f0f7ff;
-    --color-buy: #00bb00;
-    --color-buy-hover: #00aa00;
-    --color-sell: #ee0000;
-    --color-sell-hover: #bb0000;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,12 +93,6 @@ input[type="password"]:focus {
 .btn-withdraw { background: var(--color-grey-light); color: var(--color-text); flex: 1; }
 .btn-withdraw:hover { background: var(--color-grey-hover); }
 
-.btn-buy { background: var(--color-buy); color: white; flex: 1; }
-.btn-buy:hover { background: var(--color-buy-hover); }
-
-.btn-sell { background: var(--color-sell); color: white; flex: 1; }
-.btn-sell:hover { background: var(--color-sell-hover); }
-
 .btn-link { display: block; text-align: center; margin-top: 16px; color: var(--color-primary); }
 
 .btn-history {
@@ -155,7 +145,7 @@ input[type="password"]:focus {
     background: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 600px;
+    max-width: 900px;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
@@ -212,3 +202,59 @@ td .btn {
     font-size: 0.85rem;
     margin: 2px;
 }
+
+/* ========== Portfolio Evaluation ========== */
+.portfolio-evaluation {
+    border-top: 1px solid var(--color-border-light);
+    border-bottom: 1px solid var(--color-border-light);
+    margin: 16px 0 24px 0;
+    padding: 12px 0;
+}
+
+.eval-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+/* ========== Tax Summary ========== */
+.tax-summary-widget {
+    background: #fcfcfd;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 24px 0;
+}
+
+.tax-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.allowance-container { margin-top: 12px; }
+.allowance-container small {
+    color: var(--color-grey-text);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+}
+.progress-bar {
+    height: 10px;
+    background: var(--color-grey-light);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 0.6s ease-out;
+}
+
+/* ========== Utility ========== */
+.text-gain { color: var(--color-success); font-weight: 600; }
+.text-loss { color: var(--color-error); font-weight: 600; }
+.fw-bold { font-weight: 700; }

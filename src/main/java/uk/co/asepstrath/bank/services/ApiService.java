@@ -25,6 +25,10 @@ public class ApiService {
     private static final String FIELD_CONSTITUENTS = "constituents";
     private static final String FIELD_INCEPTION_DATE = "inceptionDate";
     private static final String FIELD_TIMESTAMP = "timestamp";
+    private static final String FIELD_SECTOR = "sector";
+    private static final String FIELD_COUNTRY = "country";
+    private static final String FIELD_REGION = "region";
+    private static final String FIELD_UNKNOWN = "Unknown";
 
     private final Gson gson;
     private final Logger logger;
@@ -162,7 +166,7 @@ public class ApiService {
                 equities.add(new Equity(
                         obj.get("name").getAsString(),
                         obj.get(FIELD_TICKER).getAsString(),
-                        obj.get("sector").getAsString()
+                        obj.get(FIELD_SECTOR).getAsString()
                 ));
             }
             logger.info("Fetched {} equities from API", equities.size());
@@ -267,6 +271,43 @@ public class ApiService {
         List<PricePoint> prices = fetchPrices(symbol);
         if (prices == null || prices.isEmpty()) return 0.0;
         return prices.get(prices.size() - 1).getPrice();
+    }
+
+    public Map<String, Map<String, String>> fetchEquityMetadata(List<String> tickers) {
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+        if (tickers == null || tickers.isEmpty()) return metadata;
+
+        try {
+            String tickerParam = String.join(",", tickers);
+            HttpResponse<String> response = Unirest.get(BASE_URL + "/api/equities/metadata")
+                    .queryString("tickers", tickerParam)
+                    .asString();
+
+            if (!response.isSuccess()) {
+                logger.error("Failed to fetch equity metadata: HTTP {}", response.getStatus());
+                return metadata;
+            }
+
+            JsonObject json = gson.fromJson(response.getBody(), JsonObject.class);
+            JsonArray array = json.getAsJsonArray("assets");
+
+            for (JsonElement el : array) {
+                JsonObject obj = el.getAsJsonObject();
+                String ticker = getStringOrNull(obj, FIELD_TICKER);
+                if (ticker == null) continue;
+
+                Map<String, String> meta = new HashMap<>();
+                meta.put(FIELD_COUNTRY, getStringOrNull(obj, FIELD_COUNTRY) != null ? obj.get(FIELD_COUNTRY).getAsString() : FIELD_UNKNOWN);
+                meta.put(FIELD_REGION, getStringOrNull(obj, FIELD_REGION) != null ? obj.get(FIELD_REGION).getAsString() : FIELD_UNKNOWN);
+                meta.put(FIELD_SECTOR, getStringOrNull(obj, FIELD_SECTOR) != null ? obj.get(FIELD_SECTOR).getAsString() : FIELD_UNKNOWN);
+                metadata.put(ticker, meta);
+            }
+
+            logger.info("Fetched metadata for {} equities", metadata.size());
+        } catch (Exception e) {
+            logger.error("Error fetching equity metadata", e);
+        }
+        return metadata;
     }
 
     public double fetchPriceOnDate(String symbol, LocalDate date) {

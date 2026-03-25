@@ -38,6 +38,8 @@ public class DatabaseInitialiser {
                     TransactionType VARCHAR(20) NOT NULL,
                     Ticker VARCHAR(10) NULL,
                     TotalCashAmount DECIMAL(12,2) NOT NULL,
+                    Shares INT NULL,
+                    PricePerShare DECIMAL(12,2) NULL,
                     TransactionDate DATE NOT NULL,
                     PRIMARY KEY (TransactionID),
                     FOREIGN KEY (InvestorID) REFERENCES Accounts(AccountID)
@@ -96,7 +98,7 @@ public class DatabaseInitialiser {
 
             stmt.executeUpdate("""
             MERGE INTO Accounts (AccountID, Name, Password, Balance)
-            VALUES ('investor-001', 'Demo Investor', 'password', 1000.00)
+            VALUES ('investor-001', 'Demo Investor', 'password', 1000000.00)
         """);
 
             log.info("Demo account seeded");
@@ -109,13 +111,45 @@ public class DatabaseInitialiser {
     public void seedDemoHolding() {
         try (Connection conn = ds.getConnection();
              Statement stmt = conn.createStatement()) {
+
+            // Seed current holdings
             stmt.executeUpdate("""
-            MERGE INTO Holdings (InvestorID, Ticker, Shares, TotalCost)
-            VALUES ('investor-001', 'MRH', 10, 1000.00)
+            MERGE INTO Holdings (InvestorID, Ticker, Shares, TotalCost) VALUES
+            ('investor-001', 'APX',   50, 3500.00),
+            ('investor-001', 'QSY',   30, 2400.00),
+            ('investor-001', 'CTT',   40, 3200.00),
+            ('investor-001', 'HLN',   25, 2000.00),
+            ('investor-001', 'TECHX', 20, 1800.00),
+            ('investor-001', 'FINX',  15, 1200.00),
+            ('investor-001', 'MEDX',  10,  850.00)
         """);
-            log.info("Demo holding seeded");
+
+            // Seed BUY transactions matching the holdings cost basis
+            stmt.executeUpdate("""
+            MERGE INTO Transactions
+            (TransactionID, InvestorID, TransactionType, Ticker, TotalCashAmount, Shares, PricePerShare, TransactionDate)
+            VALUES
+            ('demo-buy-001', 'investor-001', 'BUY', 'APX',   3500.00, 50, 70.00, '2025-01-10'),
+            ('demo-buy-002', 'investor-001', 'BUY', 'QSY',   2400.00, 30, 80.00, '2025-01-10'),
+            ('demo-buy-003', 'investor-001', 'BUY', 'CTT',   3200.00, 40, 80.00, '2025-01-10'),
+            ('demo-buy-004', 'investor-001', 'BUY', 'HLN',   2000.00, 25, 80.00, '2025-01-10'),
+            ('demo-buy-005', 'investor-001', 'BUY', 'TECHX', 1800.00, 20, 90.00, '2025-01-10'),
+            ('demo-buy-006', 'investor-001', 'BUY', 'FINX',  1200.00, 15, 80.00, '2025-01-10'),
+            ('demo-buy-007', 'investor-001', 'BUY', 'MEDX',   850.00, 10, 85.00, '2025-01-10')
+        """);
+
+            // Seed a SELL transaction at profit to show capital gains
+            stmt.executeUpdate("""
+            MERGE INTO Transactions
+            (TransactionID, InvestorID, TransactionType, Ticker, TotalCashAmount, Shares, PricePerShare, TransactionDate)
+            VALUES
+            ('demo-sell-001', 'investor-001', 'SELL', 'APX', 5500.00, 50, 110.00, '2025-06-15'),
+            ('demo-sell-002', 'investor-001', 'SELL', 'QSY', 6000.00, 30, 200.00, '2025-06-15')
+        """);
+
+            log.info("Demo holdings and transactions seeded");
         } catch (SQLException e) {
-            log.error("Failed to seed demo holding", e);
+            log.error("Failed to seed demo holdings", e);
         }
     }
 }

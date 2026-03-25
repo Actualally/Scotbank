@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account — Scotbank Investments</title>
     <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="icon" type="image/png" href="/assets/Scot_Favicon.png">
 </head>
 <body>
-    <div style="position: relative;">
-            <a href="/logout" class="btn btn-withdraw" style="position: absolute; top: -20px; right: -450px;">Log Out</a>
-    </div>
     <div class="card">
+        <div style="position: relative;">
+            <img src="/assets/Scotbank_Logo.png"
+                 alt="Scotbank Investments"
+                 style="position: absolute; top: -30px; right: -20px; height: 120px; width: auto;">
+        </div>
         <h1>Welcome, {{name}}</h1>
         <p class="account-id">Account: {{accountId}}</p>
-        <div class="balance-display">£{{balance}}</div>
+
+        {{#if kycRequired}}
+        <div class="msg-error" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>⚠️ KYC Compliance Check Required</span>
+            <a href="/kyc" class="btn btn-primary" style="width: auto; padding: 5px 12px; font-size: 0.85rem;">Complete</a>
+        </div>
+        {{/if}}
 
         {{#if success}}
             <div class="msg-success">{{success}}</div>
@@ -21,20 +30,23 @@
         {{#if error}}
             <div class="msg-error">{{error}}</div>
         {{/if}}
+
+        <div class="balance-display">£{{balance}}</div>
+
         <div class="actions">
             <a href="/account/deposit" class="btn btn-deposit">Deposit</a>
             <a href="/account/withdraw" class="btn btn-withdraw">Withdraw</a>
         </div>
 
-        <div>
-            <a href="account/portfolio" class="btn btn-history">Portfolio</a>
-            </button>
-        </div>
+        <a href="/account/portfolio" class="btn btn-history">Portfolio</a>
+
         {{#if transactions}}
-            <button class="btn btn-history" onclick="document.getElementById('historyModal').style.display='flex'">
-                View Transaction History
-            </button>
+        <button class="btn btn-history" onclick="document.getElementById('historyModal').style.display='flex'">
+            View Transaction History
+        </button>
         {{/if}}
+
+        <a href="/logout" class="btn btn-withdraw" style="width: 100%; margin-top: 8px; display: block; text-align: center;">Log Out</a>
     </div>
 
     {{#if transactions}}
@@ -45,19 +57,30 @@
                 <button class="modal-close" onclick="document.getElementById('historyModal').style.display='none'">&times;</button>
             </div>
             <div class="modal-body">
-                <table class="transaction-table">
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="tickerFilter" placeholder="Filter by ticker..."
+                           oninput="filterTransactions()"
+                           style="width: 200px; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.9rem;">
+                </div>
+                <table class="transaction-table" id="transactionTable">
                     <thead>
                         <tr>
                             <th>Date</th>
                             <th>Type</th>
-                            <th>Amount</th>
+                            <th>Ticker</th>
+                            <th>Shares</th>
+                            <th>Price/Share</th>
+                            <th>Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{#each transactions}}
-                        <tr>
+                        <tr class="transaction-row" data-ticker="{{this.ticker}}">
                             <td>{{this.date}}</td>
-                            <td>{{this.type}}</td>
+                            <td><span class="badge badge-{{this.typeLower}}">{{this.type}}</span></td>
+                            <td>{{#if this.ticker}}{{this.ticker}}{{else}}—{{/if}}</td>
+                            <td>{{this.shares}}</td>
+                            <td>{{#if this.pricePerShare}}£{{this.pricePerShare}}{{else}}—{{/if}}</td>
                             <td>£{{this.amount}}</td>
                         </tr>
                         {{/each}}
@@ -67,5 +90,16 @@
         </div>
     </div>
     {{/if}}
+
+    <script>
+        function filterTransactions() {
+            const filter = document.getElementById('tickerFilter').value.toUpperCase();
+            const rows = document.querySelectorAll('.transaction-row');
+            rows.forEach(row => {
+                const ticker = row.getAttribute('data-ticker') || '';
+                row.style.display = ticker.includes(filter) || filter === '' ? '' : 'none';
+            });
+        }
+    </script>
 </body>
 </html>

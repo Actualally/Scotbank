@@ -6,6 +6,8 @@ import uk.co.asepstrath.bank.services.DataSyncService;
 
 
 import javax.sql.DataSource;
+
+
 import java.sql.*;
 
 public class AppLifecycleManager {
