@@ -1,0 +1,14 @@
+We will partially migrate to AWS London region, with Ireland region as a backup if the London cloud fails.
+Will use a hybrid cloud to keep high security for customer information while keeping the application fast and scalable
+
+Use Amazon CloudFront for handling API requests with AWS Shield Advanced to ensure maximum protection against DDoS attacks
+
+Amazon Cognito used for customer sign in and sign up to ensure proper authentication
+
+AWS is compliant with Payment Card Industry Security Standards and the ISO/IEC 27001 (security management standard that specifies best practices and security controls) - this keeps our application secure and up to date with modern best practices
+
+Would use AWS Direct Connect to connect our private to public - this gives us a dedicated private link to AWS to improve security by ensuring we aren't transmitting sensitive information across the public internet
+
+Amazon CloudWatch to keep an eye on application health and system performance
+AWS CloudTrail for tracking and auditing user activity
+Both improve overall application security
